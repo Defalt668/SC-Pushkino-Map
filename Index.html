@@ -1,0 +1,3136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Карта СЦ Пушкино — Конструктор разметки</title>
+<style>
+:root {
+    --bg-main: #f4f4f7;
+    --bg-sidebar: #fff;
+    --bg-panel: #fff;
+    --text-main: #333;
+    --text-muted: #888;
+    --border-color: #e5e5ea;
+    --bg-item: #fff;
+    --bg-item-hover: #faf6fb;
+    --bg-grid: #fff;
+    --accent: #7a0e7e;
+    --accent-hover: #610b64;
+    --accent-soft: rgba(122, 14, 126, 0.08);
+    --danger: #c62828;
+    --danger-bg: #ffebee;
+    --danger-border: #ffcdd2;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+    --grid-label: #aaa;
+    --dock-color: #999;
+}
+[data-theme="dark"] {
+    --bg-main: #0b0b0d;
+    --bg-sidebar: #121216;
+    --bg-panel: #121216;
+    --text-main: #d1d1d6;
+    --text-muted: #71717a;
+    --border-color: #222227;
+    --bg-item: #181820;
+    --bg-item-hover: #1e1e29;
+    --bg-grid: #111114;
+    --accent: #b51bbf;
+    --accent-hover: #9a15a3;
+    --accent-soft: rgba(181, 27, 191, 0.14);
+    --danger: #ef4444;
+    --danger-bg: #271c1c;
+    --danger-border: #7f1d1d;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.5);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.6);
+    --grid-label: #555;
+    --dock-color: #666;
+}
+
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    height: 100%;
+    background: var(--bg-main);
+    color: var(--text-main);
+    user-select: none;
+    overflow: hidden;
+    font-size: 14px;
+}
+#app { display: flex; height: 100vh; width: 100vw; }
+
+/* САЙДБАР */
+#sidebar {
+    width: 340px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    display: flex; flex-direction: column;
+    flex-shrink: 0; z-index: 5;
+}
+.sb-header {
+    background: var(--accent); color: #fff;
+    padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.sb-header h3 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 0.3px; }
+.sb-header .subtitle { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+.theme-btn {
+    background: transparent; border: none; color: #fff;
+    cursor: pointer; font-size: 18px; padding: 6px; border-radius: 4px;
+}
+.theme-btn:hover { background: rgba(255,255,255,0.15); }
+
+.sb-access { padding: 10px 14px; border-bottom: 1px solid var(--border-color); }
+.btn {
+    background: var(--accent); color: #fff; border: none;
+    padding: 10px 14px; border-radius: 8px; cursor: pointer;
+    font-weight: 600; font-size: 13px;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px; width: 100%; font-family: inherit;
+    transition: background 0.15s, opacity 0.15s;
+}
+.btn:hover { background: var(--accent-hover); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary {
+    background: var(--bg-item); color: var(--text-main);
+    border: 1px solid var(--border-color);
+}
+.btn-secondary:hover { background: var(--bg-item-hover); }
+.btn-danger {
+    background: var(--danger-bg); color: var(--danger);
+    border: 1px solid var(--danger-border);
+}
+.btn-danger:hover { opacity: 0.85; }
+.btn-sm { padding: 7px 10px; font-size: 12px; }
+.btn-icon {
+    width: 28px; height: 28px; padding: 0;
+    background: transparent; color: var(--text-muted);
+    border: 1px solid transparent; border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px;
+}
+.btn-icon:hover { background: var(--bg-item-hover); color: var(--accent); }
+.btn-icon:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.sb-submodes {
+    display: flex; padding: 8px 14px; gap: 6px;
+    border-bottom: 1px solid var(--border-color);
+}
+.sb-submode {
+    flex: 1; padding: 8px; text-align: center;
+    border-radius: 6px; cursor: pointer;
+    font-size: 12px; font-weight: 600;
+    color: var(--text-muted); border: 1px solid transparent;
+    transition: 0.15s;
+}
+.sb-submode:hover { background: var(--bg-item-hover); }
+.sb-submode.active {
+    background: var(--accent-soft); color: var(--accent);
+    border-color: var(--accent);
+}
+
+.sb-tools {
+    padding: 8px 14px 10px;
+    border-bottom: 1px solid var(--border-color);
+    display: none; flex-direction: column; gap: 4px;
+}
+.sb-tools.visible { display: flex; }
+.tool-row { display: flex; gap: 4px; }
+.tool-btn {
+    flex: 1; height: 40px;
+    background: transparent; color: var(--text-muted);
+    border: 1px solid transparent; border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 10px; gap: 2px;
+    transition: 0.15s;
+}
+.tool-btn .icon { font-size: 15px; line-height: 1; }
+.tool-btn:hover { background: var(--bg-item-hover); color: var(--text-main); }
+.tool-btn.active {
+    background: var(--accent-soft); color: var(--accent);
+    border-color: var(--accent);
+}
+
+.snap-toggle {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border-color);
+    display: none; align-items: center;
+    justify-content: space-between;
+    font-size: 12px; color: var(--text-muted);
+}
+.snap-toggle.visible { display: flex; }
+.switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+.switch input { display: none; }
+.slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: var(--border-color);
+    transition: .2s; border-radius: 20px;
+}
+.slider:before {
+    position: absolute; content: "";
+    height: 14px; width: 14px;
+    left: 3px; bottom: 3px;
+    background: #fff; transition: .2s; border-radius: 50%;
+}
+input:checked + .slider { background: var(--accent); }
+input:checked + .slider:before { transform: translateX(16px); }
+
+.sb-settings {
+    border-bottom: 1px solid var(--border-color);
+    display: none;
+}
+.sb-settings.visible { display: block; }
+.sb-settings-header {
+    padding: 10px 14px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px; font-weight: 600;
+    color: var(--text-muted);
+    user-select: none;
+}
+.sb-settings-header:hover { background: var(--bg-item-hover); color: var(--text-main); }
+.sb-settings-header .arrow { font-size: 10px; transition: transform 0.15s; }
+.sb-settings-header.collapsed .arrow { transform: rotate(-90deg); }
+.sb-settings-body {
+    padding: 6px 14px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.sb-settings-body.collapsed { display: none; }
+.setting-row { font-size: 11px; color: var(--text-muted); }
+.setting-row .setting-top {
+    display: flex; justify-content: space-between;
+    margin-bottom: 3px;
+}
+.setting-row .setting-val {
+    font-weight: 700;
+    color: var(--text-main);
+    font-family: ui-monospace, monospace;
+}
+.setting-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+.sb-search { padding: 10px 14px; border-bottom: 1px solid var(--border-color); }
+.sb-search input {
+    width: 100%; padding: 8px 12px;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 8px; color: var(--text-main);
+    font-size: 13px; font-family: inherit; outline: none;
+}
+.sb-search input:focus { border-color: var(--accent); }
+
+.sb-content { flex: 1; overflow-y: auto; padding: 10px 10px 16px; }
+.sb-empty {
+    color: var(--text-muted); font-size: 12px;
+    font-style: italic; text-align: center;
+    padding: 20px 10px; line-height: 1.5;
+}
+.sb-section-title {
+    font-size: 10px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; padding: 10px 8px 6px;
+    letter-spacing: 0.6px;
+}
+
+.list-item {
+    background: var(--bg-item);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: var(--shadow-sm);
+    transition: background 0.12s;
+    position: relative; overflow: hidden;
+}
+.list-item::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: transparent; transition: background 0.15s;
+}
+.list-item:hover { background: var(--bg-item-hover); }
+.list-item.selected::before { background: var(--accent); }
+.list-item.selected { background: var(--accent-soft); }
+.list-item-swatch {
+    width: 16px; height: 16px; border-radius: 4px;
+    flex-shrink: 0; border: 1px solid rgba(0,0,0,0.08);
+}
+[data-theme="dark"] .list-item-swatch { border-color: rgba(255,255,255,0.1); }
+.list-item-icon {
+    width: 18px; text-align: center; flex-shrink: 0;
+    font-size: 14px; color: var(--text-muted);
+}
+.list-item-info { flex: 1; min-width: 0; }
+.list-item-title {
+    font-size: 13px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.3;
+}
+.list-item-sub {
+    font-size: 11px; color: var(--text-muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+.folder-header {
+    background: var(--bg-item);
+    border-radius: 10px;
+    padding: 9px 12px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: var(--shadow-sm);
+    transition: background 0.12s;
+}
+.folder-header:hover { background: var(--bg-item-hover); }
+.folder-header .arrow {
+    font-size: 10px; color: var(--text-muted);
+    transition: transform 0.15s; width: 12px; text-align: center;
+}
+.folder-header.collapsed .arrow { transform: rotate(-90deg); }
+.folder-header .folder-name {
+    flex: 1; font-size: 13px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.folder-header .folder-count {
+    font-size: 11px; color: var(--text-muted);
+    background: var(--bg-main); padding: 1px 7px; border-radius: 8px;
+}
+.folder-header .folder-actions {
+    display: flex; gap: 2px;
+    opacity: 0; transition: opacity 0.15s;
+}
+.folder-header:hover .folder-actions { opacity: 1; }
+.folder-children {
+    padding-left: 12px; margin-left: 10px;
+    border-left: 1px solid var(--border-color);
+    margin-bottom: 6px;
+}
+.folder-children.collapsed { display: none; }
+.folder-children:empty::after {
+    content: 'пусто'; display: block;
+    color: var(--text-muted); font-size: 11px;
+    font-style: italic; padding: 6px 12px;
+}
+.folder-header.drag-over {
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 2px var(--accent) inset;
+}
+.list-item.dragging { opacity: 0.4; }
+
+.sb-footer {
+    padding: 10px 12px;
+    border-top: 1px solid var(--border-color);
+    display: none; flex-direction: column; gap: 6px;
+}
+.sb-footer.visible { display: flex; }
+.sb-footer .row { display: flex; gap: 6px; }
+.sb-footer .row .btn { flex: 1; }
+
+/* CANVAS */
+#canvas-wrap {
+    flex: 1; position: relative;
+    overflow: hidden; background: var(--bg-grid);
+}
+#mapCanvas { display: block; background: var(--bg-grid); cursor: default; }
+.canvas-hud {
+    position: absolute;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    padding: 6px; display: flex; gap: 4px;
+    z-index: 10; pointer-events: auto;
+}
+.hud-coords {
+    left: 12px; bottom: 12px;
+    font-family: ui-monospace, 'SF Mono', monospace;
+    font-size: 11px; padding: 6px 10px;
+    color: var(--text-muted);
+}
+.hud-zoom { right: 12px; bottom: 12px; }
+.hud-zoom .btn-icon { width: 30px; height: 30px; font-size: 14px; }
+.hud-zoom .zoom-val {
+    font-size: 11px; font-weight: 700;
+    padding: 0 8px; display: flex; align-items: center;
+    color: var(--text-main);
+    min-width: 44px; justify-content: center;
+}
+.hud-history { right: 12px; top: 12px; }
+
+/* ПАНЕЛЬ СВОЙСТВ */
+#props-panel {
+    width: 280px; background: var(--bg-panel);
+    border-left: 1px solid var(--border-color);
+    display: none; flex-direction: column; flex-shrink: 0;
+}
+#props-panel.visible { display: flex; }
+.props-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px; font-weight: 700;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.props-header .type-badge {
+    font-size: 9px; font-weight: 700;
+    padding: 2px 6px; border-radius: 4px;
+    background: var(--accent-soft); color: var(--accent);
+    text-transform: uppercase;
+}
+.props-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
+.prop-row { margin-bottom: 14px; }
+.prop-row label {
+    display: block; font-size: 10px; font-weight: 700;
+    color: var(--text-muted); margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.prop-row input[type="text"], .prop-row input[type="number"] {
+    width: 100%; padding: 8px 10px;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px; color: var(--text-main);
+    font-size: 13px; font-family: inherit; outline: none;
+}
+.prop-row input:focus { border-color: var(--accent); }
+.prop-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+.prop-row .range-info {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--text-muted); margin-top: 4px;
+}
+.color-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;
+}
+.color-swatch {
+    aspect-ratio: 1; border-radius: 6px; cursor: pointer;
+    border: 2px solid transparent; transition: transform 0.1s;
+}
+.color-swatch:hover { transform: scale(1.1); }
+.color-swatch.selected {
+    border-color: var(--text-main);
+    box-shadow: 0 0 0 2px var(--bg-panel) inset;
+}
+.style-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+.style-btn {
+    flex: 1; min-width: 60px; padding: 7px;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px; cursor: pointer;
+    font-size: 11px; font-family: inherit;
+    color: var(--text-main); transition: 0.12s;
+    text-align: center;
+}
+.style-btn:hover { background: var(--bg-item-hover); }
+.style-btn.active {
+    background: var(--accent-soft);
+    border-color: var(--accent); color: var(--accent);
+    font-weight: 600;
+}
+.props-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-color);
+}
+.gaps-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.gap-item {
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px; padding: 8px 10px;
+    font-size: 12px;
+    display: flex; align-items: center; gap: 6px;
+}
+.gap-item.selected { border-color: var(--accent); background: var(--accent-soft); }
+.gap-item .gap-icon { font-size: 14px; }
+.gap-item .gap-info { flex: 1; min-width: 0; }
+.gap-item .gap-name { font-weight: 600; font-size: 12px; }
+.gap-item .gap-sub { font-size: 10px; color: var(--text-muted); }
+.gap-item .btn-icon { width: 22px; height: 22px; font-size: 11px; }
+
+/* МОДАЛКА */
+#modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); z-index: 99;
+    backdrop-filter: blur(2px);
+}
+#modal-overlay.visible { display: block; }
+#modal {
+    display: none; position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-sidebar);
+    padding: 20px; border-radius: 12px; z-index: 100;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+    width: 380px; max-height: 90vh; overflow-y: auto;
+}
+#modal.visible { display: block; }
+#modal h4 { margin: 0 0 16px; color: var(--accent); font-size: 15px; font-weight: 700; }
+.form-row { margin-bottom: 12px; }
+.form-row label {
+    display: block; font-size: 10px; color: var(--text-muted);
+    font-weight: 700; margin-bottom: 4px;
+    text-transform: uppercase; letter-spacing: 0.4px;
+}
+.form-row input[type="text"], .form-row select {
+    width: 100%; padding: 9px 11px;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    color: var(--text-main); border-radius: 6px;
+    font-size: 13px; font-family: inherit; outline: none;
+}
+.form-row input:focus, .form-row select:focus { border-color: var(--accent); }
+.form-actions {
+    display: flex; flex-direction: column;
+    gap: 6px; margin-top: 18px;
+}
+.form-actions .row { display: flex; gap: 6px; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
+</head>
+<body>
+<div id="app">
+
+    <aside id="sidebar">
+        <div class="sb-header">
+            <div>
+                <h3>Карта СЦ Пушкино</h3>
+                <div class="subtitle" id="mode-indicator">Режим просмотра</div>
+            </div>
+            <button class="theme-btn" onclick="toggleTheme()" id="theme-icon">🌙</button>
+        </div>
+
+        <div class="sb-access">
+            <button class="btn" id="access-btn" onclick="toggleAccess()">🔒 Войти как разработчик</button>
+        </div>
+
+        <div class="sb-submodes" id="submodes-block" style="display:none;">
+            <div class="sb-submode active" data-submode="layout" onclick="setSubmode('layout')">▢ Разметка</div>
+            <div class="sb-submode" data-submode="cameras" onclick="setSubmode('cameras')">📹 Камеры</div>
+        </div>
+
+        <div class="sb-tools" id="tools-block">
+            <div class="tool-row">
+                <div class="tool-btn active" data-tool="select" onclick="setTool('select')" title="Выделение">
+                    <span class="icon">✋</span><span>Выбор</span>
+                </div>
+                <div class="tool-btn" data-tool="rect" onclick="setTool('rect')" title="Зона">
+                    <span class="icon">▢</span><span>Зона</span>
+                </div>
+                <div class="tool-btn" data-tool="line" onclick="setTool('line')" title="Стена">
+                    <span class="icon">╱</span><span>Стена</span>
+                </div>
+            </div>
+            <div class="tool-row">
+                <div class="tool-btn" data-tool="cap-wall" onclick="setTool('cap-wall')" title="Капитальная стена">
+                    <span class="icon">▬</span><span>Капит.</span>
+                </div>
+                <div class="tool-btn" data-tool="gap" onclick="setTool('gap')" title="Проём в стене">
+                    <span class="icon">⊟</span><span>Проём</span>
+                </div>
+                <div class="tool-btn" data-tool="mark" onclick="setTool('mark')" title="Метка объекта">
+                    <span class="icon">⚡</span><span>Метка</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="snap-toggle" id="snap-block">
+            <span>Привязка к сетке</span>
+            <label class="switch">
+                <input type="checkbox" id="snap-toggle-input" onchange="onSnapToggle()">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="sb-settings" id="settings-block">
+            <div class="sb-settings-header collapsed" id="settings-header" onclick="toggleSettings()">
+                <span>⚙ Настройки отображения</span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="sb-settings-body collapsed" id="settings-body">
+                <div class="setting-row">
+                    <div class="setting-top">
+                        <span>Размер точки камеры</span>
+                        <span class="setting-val" id="val-camSize">1.5</span>
+                    </div>
+                    <input type="range" min="1" max="6" step="0.5" value="1.5"
+                           oninput="updateSetting('camSize', parseFloat(this.value))">
+                </div>
+                <div class="setting-row">
+                    <div class="setting-top">
+                        <span>Размер значка метки</span>
+                        <span class="setting-val" id="val-markSize">5</span>
+                    </div>
+                    <input type="range" min="2" max="12" step="0.5" value="5"
+                           oninput="updateSetting('markSize', parseFloat(this.value))">
+                </div>
+                <div class="setting-row">
+                    <div class="setting-top">
+                        <span>Прозрачность сектора</span>
+                        <span class="setting-val" id="val-fovOpacity">0.06</span>
+                    </div>
+                    <input type="range" min="0.02" max="0.4" step="0.01" value="0.06"
+                           oninput="updateSetting('fovOpacity', parseFloat(this.value))">
+                </div>
+                <div class="setting-row">
+                    <div class="setting-top">
+                        <span>Толщина контура сектора</span>
+                        <span class="setting-val" id="val-fovLine">0.8</span>
+                    </div>
+                    <input type="range" min="0.3" max="2" step="0.1" value="0.8"
+                           oninput="updateSetting('fovLine', parseFloat(this.value))">
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="resetSettings()" style="margin-top:4px;">↺ Сбросить настройки</button>
+            </div>
+        </div>
+
+        <div class="sb-search">
+            <input type="text" id="search-input" placeholder="Поиск..." oninput="onSearchInput()">
+        </div>
+
+        <div class="sb-content" id="sb-content"></div>
+
+        <div class="sb-footer" id="sb-footer">
+            <div class="row">
+                <button class="btn btn-secondary btn-sm" onclick="exportJSON()">📤 Экспорт</button>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-input').click()">📥 Импорт</button>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="resetAll()">🗑 Сбросить всё</button>
+            <input type="file" id="import-input" accept=".json" style="display:none;" onchange="importJSON(event)">
+        </div>
+    </aside>
+
+    <div id="canvas-wrap">
+        <canvas id="mapCanvas"></canvas>
+        <div class="canvas-hud hud-coords" id="hud-coords">x: 0 px (0 м) · y: 0 px (0 м)</div>
+        <div class="canvas-hud hud-history" id="hud-history" style="display:none;">
+            <button class="btn-icon" id="undo-btn" onclick="undo()" title="Отменить (Ctrl+Z)">↶</button>
+            <button class="btn-icon" id="redo-btn" onclick="redo()" title="Вернуть (Ctrl+Shift+Z)">↷</button>
+        </div>
+        <div class="canvas-hud hud-zoom">
+            <button class="btn-icon" onclick="zoomOut()" title="Уменьшить">−</button>
+            <span class="zoom-val" id="zoom-val">100%</span>
+            <button class="btn-icon" onclick="zoomIn()" title="Увеличить">+</button>
+            <button class="btn-icon" onclick="zoomReset()" title="Сбросить вид">⤢</button>
+        </div>
+    </div>
+
+    <aside id="props-panel">
+        <div class="props-header">
+            <span id="props-title">Свойства</span>
+            <span class="type-badge" id="props-type" style="display:none;"></span>
+        </div>
+        <div class="props-body" id="props-body"></div>
+        <div class="props-footer">
+            <button class="btn btn-danger btn-sm" id="props-delete-btn" onclick="deleteSelected()" style="display:none;">🗑 Удалить</button>
+        </div>
+    </aside>
+</div>
+
+<div id="modal-overlay" onclick="closeModal()"></div>
+<div id="modal">
+    <h4 id="modal-title">Камера</h4>
+    <div id="modal-body"></div>
+    <div class="form-actions">
+        <button class="btn" onclick="saveModal()">Сохранить</button>
+        <div class="row">
+            <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+            <button class="btn btn-danger" id="modal-delete-btn" onclick="deleteFromModal()">Удалить</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* КОНСТАНТЫ */
+const STORAGE_KEY = 'sc_pushkino_map_v8';
+const THEME_KEY = 'sc_pushkino_theme_v8';
+const PASSWORD_KEY = 'sc_pushkino_pass_ok';
+const ADMIN_PASSWORD = 'admin';
+
+const CANVAS_W = 2400;
+const CANVAS_H = 1600;
+const PX_PER_M = 4;
+
+const ZOOM_MIN = 0.1;
+const ZOOM_MAX = 8;
+const ZOOM_STEP = 1.15;
+
+const HISTORY_LIMIT = 50;
+
+const PALETTE = [
+    '#3b82f6', '#22c55e', '#f97316', '#eab308', '#ef4444', '#a855f7',
+    '#06b6d4', '#ec4899', '#84cc16', '#6b7280', '#000000', '#ffffff'
+];
+
+const BORDER_STYLES = [
+    { value: 'solid', label: 'Сплошная' },
+    { value: 'dashed', label: 'Пунктир' },
+    { value: 'none', label: 'Без' }
+];
+
+const GAP_TYPES = {
+    gate:   { label: 'Ворота',  defaultWidth: 4.0, icon: '🚪' },
+    door:   { label: 'Дверь',   defaultWidth: 0.9, icon: '🚪' },
+    pass:   { label: 'Проход',  defaultWidth: 1.5, icon: '⬛' }
+};
+
+const MARKS_INFO = {
+    shield:    { label: 'Электрощит',    emoji: '⚡',  bg: '#f5c518', shape: 'triangle' },
+    exting:    { label: 'Огнетушитель',  emoji: '🧯',  bg: '#d32f2f', shape: 'circle' },
+    hydrant:   { label: 'Пожарный кран', emoji: '🚰',  bg: '#d32f2f', shape: 'square' },
+    alarm:     { label: 'Кнопка ПА',     emoji: '🚨',  bg: '#d32f2f', shape: 'circle' },
+    medkit:    { label: 'Аптечка',       emoji: '✚',   bg: '#2e7d32', shape: 'square', isCross: true },
+    fireshield:{ label: 'Пожарный щит',  emoji: '🪓',  bg: '#d32f2f', shape: 'square' },
+    phone:     { label: 'Телефон',       emoji: '📞',  bg: '#1565c0', shape: 'circle' }
+};
+
+const GRID_LADDER = [0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 100, 250, 500, 1000];
+
+const DEFAULT_SETTINGS = {
+    camSize: 1.5,
+    markSize: 5,
+    fovOpacity: 0.06,
+    fovLine: 0.8
+};
+
+const WALL_SNAP_DIST = 15;
+
+/* СОСТОЯНИЕ */
+let state = {
+    objects: [],
+    cameras: [],
+    folders: [],
+    settings: { ...DEFAULT_SETTINGS },
+    counter: { obj: 1, cam: 1, folder: 1, gap: 1, mark: 1 }
+};
+
+let accessMode = false;
+let submode = 'layout';
+let activeTool = 'select';
+let activeMarkType = 'shield';
+let activeGapType = 'gate';
+let snapToGrid = false;
+let searchQuery = '';
+let collapsedFolders = {};
+let settingsCollapsed = true;
+
+let selectedItem = null;
+let hoveredItem = null;
+let dragState = null;
+let drawState = null;
+let tempCoords = null;
+let editingId = null;
+let editingType = null;
+
+let view = { scale: 1, offsetX: 0, offsetY: 0 };
+let history = { undo: [], redo: [] };
+let isRestoringHistory = false;
+let draggingCameraId = null;
+let currentGridStepMeters = 10;
+
+/* CANVAS */
+const canvas = document.getElementById('mapCanvas');
+const ctx = canvas.getContext('2d');
+const canvasWrap = document.getElementById('canvas-wrap');
+
+function resizeCanvas() {
+    const rect = canvasWrap.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    redraw();
+}
+window.addEventListener('resize', resizeCanvas);
+
+/* ХРАНИЛИЩЕ */
+function loadState() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+            const p = JSON.parse(raw);
+            state = {
+                objects: p.objects || [],
+                cameras: p.cameras || [],
+                folders: p.folders || [],
+                settings: { ...DEFAULT_SETTINGS, ...(p.settings || {}) },
+                counter: p.counter || { obj: 1, cam: 1, folder: 1, gap: 1, mark: 1 }
+            };
+        }
+    } catch (e) { console.warn('loadState:', e); }
+}
+function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch (e) { alert('Ошибка сохранения'); }
+}
+
+/* ИСТОРИЯ */
+function snapshot() {
+    return JSON.stringify({
+        objects: state.objects,
+        cameras: state.cameras,
+        folders: state.folders,
+        settings: state.settings,
+        counter: state.counter
+    });
+}
+function pushHistory() {
+    if (isRestoringHistory) return;
+    history.undo.push(snapshot());
+    if (history.undo.length > HISTORY_LIMIT) history.undo.shift();
+    history.redo = [];
+    updateHistoryButtons();
+}
+function undo() {
+    if (history.undo.length === 0) return;
+    const current = snapshot();
+    const prev = history.undo.pop();
+    history.redo.push(current);
+    applySnapshot(prev);
+    updateHistoryButtons();
+}
+function redo() {
+    if (history.redo.length === 0) return;
+    const current = snapshot();
+    const next = history.redo.pop();
+    history.undo.push(current);
+    applySnapshot(next);
+    updateHistoryButtons();
+}
+function applySnapshot(snap) {
+    isRestoringHistory = true;
+    const p = JSON.parse(snap);
+    state.objects = p.objects;
+    state.cameras = p.cameras;
+    state.folders = p.folders;
+    state.settings = p.settings || { ...DEFAULT_SETTINGS };
+    state.counter = p.counter;
+    saveState();
+    if (selectedItem) {
+        const exists = selectedItem.type === 'object'
+            ? state.objects.find(o => o.id === selectedItem.id)
+            : selectedItem.type === 'camera'
+            ? state.cameras.find(c => c.id === selectedItem.id)
+            : true;
+        if (!exists) selectedItem = null;
+    }
+    isRestoringHistory = false;
+    syncSettingsUI();
+    renderSidebar();
+    renderPropsPanel();
+    redraw();
+}
+function updateHistoryButtons() {
+    const u = document.getElementById('undo-btn');
+    const r = document.getElementById('redo-btn');
+    if (u) { u.disabled = history.undo.length === 0; u.style.opacity = u.disabled ? 0.3 : 1; }
+    if (r) { r.disabled = history.redo.length === 0; r.style.opacity = r.disabled ? 0.3 : 1; }
+}
+
+/* ТЕМА */
+function initTheme() {
+    const saved = localStorage.getItem(THEME_KEY) || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+    updateThemeIcon(saved);
+}
+function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme') || 'light';
+    const next = cur === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem(THEME_KEY, next);
+    updateThemeIcon(next);
+    redraw();
+}
+function updateThemeIcon(t) {
+    document.getElementById('theme-icon').innerText = t === 'light' ? '🌙' : '☀️';
+}
+
+/* РЕЖИМЫ */
+function checkSavedPassword() { return localStorage.getItem(PASSWORD_KEY) === '1'; }
+function toggleAccess() {
+    if (accessMode) {
+        accessMode = false;
+        selectedItem = null; hoveredItem = null;
+        updateAccessUI(); renderPropsPanel(); redraw();
+    } else {
+        if (checkSavedPassword()) { accessMode = true; updateAccessUI(); redraw(); return; }
+        const pass = prompt('Введите пароль разработчика:');
+        if (pass === ADMIN_PASSWORD) {
+            localStorage.setItem(PASSWORD_KEY, '1');
+            accessMode = true; updateAccessUI(); redraw();
+        } else if (pass !== null) alert('Неверный пароль');
+    }
+}
+function updateAccessUI() {
+    const btn = document.getElementById('access-btn');
+    const subm = document.getElementById('submodes-block');
+    const tools = document.getElementById('tools-block');
+    const snap = document.getElementById('snap-block');
+    const settings = document.getElementById('settings-block');
+    const footer = document.getElementById('sb-footer');
+    const indicator = document.getElementById('mode-indicator');
+    const historyHud = document.getElementById('hud-history');
+
+    if (accessMode) {
+        btn.innerText = '🔓 Выйти из режима разработчика';
+        subm.style.display = 'flex';
+        tools.classList.toggle('visible', submode === 'layout');
+        snap.classList.toggle('visible', submode === 'layout');
+        settings.classList.add('visible');
+        footer.classList.add('visible');
+        indicator.innerText = 'Режим разработчика';
+        historyHud.style.display = 'flex';
+    } else {
+        btn.innerText = '🔒 Войти как разработчик';
+        subm.style.display = 'none';
+        tools.classList.remove('visible');
+        snap.classList.remove('visible');
+        settings.classList.remove('visible');
+        footer.classList.remove('visible');
+        indicator.innerText = 'Режим просмотра';
+        historyHud.style.display = 'none';
+    }
+    renderSidebar();
+    renderPropsPanel();
+}
+function setSubmode(mode) {
+    submode = mode;
+    document.querySelectorAll('.sb-submode').forEach(el => {
+        el.classList.toggle('active', el.dataset.submode === mode);
+    });
+    document.getElementById('tools-block').classList.toggle('visible', mode === 'layout');
+    document.getElementById('snap-block').classList.toggle('visible', mode === 'layout');
+    selectedItem = null; hoveredItem = null;
+    if (mode !== 'layout') setTool('select', true);
+    renderSidebar(); renderPropsPanel(); redraw();
+}
+function setTool(tool, silent) {
+    activeTool = tool;
+    document.querySelectorAll('.tool-btn').forEach(el => {
+        el.classList.toggle('active', el.dataset.tool === tool);
+    });
+    if (!silent) {
+        selectedItem = null;
+        renderPropsPanel();
+        renderSidebar();
+        redraw();
+    }
+}
+function onSnapToggle() {
+    snapToGrid = document.getElementById('snap-toggle-input').checked;
+}
+function toggleSettings() {
+    settingsCollapsed = !settingsCollapsed;
+    document.getElementById('settings-header').classList.toggle('collapsed', settingsCollapsed);
+    document.getElementById('settings-body').classList.toggle('collapsed', settingsCollapsed);
+}
+function updateSetting(key, value) {
+    state.settings[key] = value;
+    saveState();
+    const valEl = document.getElementById('val-' + key);
+    if (valEl) valEl.innerText = typeof value === 'number' && value % 1 !== 0 ? value.toFixed(2) : value;
+    redraw();
+}
+function resetSettings() {
+    state.settings = { ...DEFAULT_SETTINGS };
+    saveState();
+    syncSettingsUI();
+    redraw();
+}
+function syncSettingsUI() {
+    const s = state.settings;
+    document.getElementById('val-camSize').innerText = s.camSize;
+    document.getElementById('val-markSize').innerText = s.markSize;
+    document.getElementById('val-fovOpacity').innerText = s.fovOpacity.toFixed(2);
+    document.getElementById('val-fovLine').innerText = s.fovLine.toFixed(1);
+    const inputs = document.querySelectorAll('#settings-body input[type="range"]');
+    if (inputs[0]) inputs[0].value = s.camSize;
+    if (inputs[1]) inputs[1].value = s.markSize;
+    if (inputs[2]) inputs[2].value = s.fovOpacity;
+    if (inputs[3]) inputs[3].value = s.fovLine;
+}
+
+/* КООРДИНАТЫ */
+function screenToWorld(sx, sy) {
+    return { x: (sx - view.offsetX) / view.scale, y: (sy - view.offsetY) / view.scale };
+}
+function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const sx = e.clientX - rect.left;
+    const sy = e.clientY - rect.top;
+    return { screen: { x: sx, y: sy }, world: screenToWorld(sx, sy) };
+}
+function zoomAt(sx, sy, factor) {
+    const newScale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, view.scale * factor));
+    if (newScale === view.scale) return;
+    const k = newScale / view.scale;
+    view.offsetX = sx - (sx - view.offsetX) * k;
+    view.offsetY = sy - (sy - view.offsetY) * k;
+    view.scale = newScale;
+    updateZoomIndicator();
+    redraw();
+}
+function zoomIn() { zoomAt(canvas.width / 2, canvas.height / 2, ZOOM_STEP); }
+function zoomOut() { zoomAt(canvas.width / 2, canvas.height / 2, 1 / ZOOM_STEP); }
+function zoomReset() {
+    view.scale = 1;
+    view.offsetX = (canvas.width - CANVAS_W) / 2;
+    view.offsetY = (canvas.height - CANVAS_H) / 2;
+    updateZoomIndicator();
+    redraw();
+}
+function updateZoomIndicator() {
+    document.getElementById('zoom-val').innerText = Math.round(view.scale * 100) + '%';
+}
+function snapWorld(pos) {
+    if (!snapToGrid) return pos;
+    const stepPx = currentGridStepMeters * PX_PER_M;
+    return {
+        x: Math.round(pos.x / stepPx) * stepPx,
+        y: Math.round(pos.y / stepPx) * stepPx
+    };
+}
+
+/* SNAP К СТЕНАМ */
+function findWallSnapPoint(world, excludeWallId) {
+    let best = null;
+    let bestDist = WALL_SNAP_DIST;
+
+    state.objects.forEach(obj => {
+        if (obj.id === excludeWallId) return;
+        if (obj.kind !== 'line' && obj.kind !== 'cap-wall') return;
+        const len = Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1);
+        if (len < 0.1) return;
+        const ux = (obj.x2 - obj.x1) / len;
+        const uy = (obj.y2 - obj.y1) / len;
+        const dx = world.x - obj.x1;
+        const dy = world.y - obj.y1;
+        let t = (dx * ux + dy * uy) / len;
+        t = Math.max(0, Math.min(1, t));
+        const px = obj.x1 + ux * t * len;
+        const py = obj.y1 + uy * t * len;
+        const d = Math.hypot(world.x - px, world.y - py);
+        if (d < bestDist) { bestDist = d; best = { x: px, y: py }; }
+    });
+
+    state.objects.forEach(obj => {
+        if (obj.id === excludeWallId) return;
+        if (obj.kind !== 'line' && obj.kind !== 'cap-wall') return;
+        [{ x: obj.x1, y: obj.y1 }, { x: obj.x2, y: obj.y2 }].forEach(p => {
+            const d = Math.hypot(world.x - p.x, world.y - p.y);
+            if (d < bestDist) { bestDist = d; best = { x: p.x, y: p.y }; }
+        });
+    });
+
+    return best;
+}
+
+/* РЕНДЕР */
+function redraw() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = isDark ? '#0d0d10' : '#f0f0f3';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(view.offsetX, view.offsetY);
+    ctx.scale(view.scale, view.scale);
+    ctx.fillStyle = isDark ? '#111114' : '#ffffff';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    drawGrid(isDark);
+    state.objects.forEach(obj => drawObject(obj));
+    state.cameras.forEach(cam => drawCamera(cam));
+    if (drawState && drawState.current) drawDrawPreview();
+    ctx.restore();
+}
+
+/* СЕТКА */
+function drawGrid(isDark) {
+    const targetScreenPx = 50;
+    const idealMeters = targetScreenPx / (PX_PER_M * view.scale);
+    let stepMeters = GRID_LADDER[GRID_LADDER.length - 1];
+    for (const m of GRID_LADDER) {
+        if (m >= idealMeters) { stepMeters = m; break; }
+    }
+    currentGridStepMeters = stepMeters;
+    const stepPx = stepMeters * PX_PER_M;
+    const cols = Math.min(Math.ceil(CANVAS_W / stepPx), 5000);
+    const rows = Math.min(Math.ceil(CANVAS_H / stepPx), 5000);
+    const colorMinor = isDark ? '#1f1f24' : '#e9e9ee';
+    const colorMajor = isDark ? '#2a2a32' : '#d5d5dc';
+
+    ctx.strokeStyle = colorMinor;
+    ctx.lineWidth = Math.max(0.5, 1 / view.scale);
+    ctx.beginPath();
+    for (let i = 0; i <= cols; i++) { const x = i * stepPx; ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_H); }
+    for (let j = 0; j <= rows; j++) { const y = j * stepPx; ctx.moveTo(0, y); ctx.lineTo(CANVAS_W, y); }
+    ctx.stroke();
+
+    const majorStepPx = stepPx * 5;
+    const majorCols = Math.min(Math.ceil(CANVAS_W / majorStepPx), 1000);
+    const majorRows = Math.min(Math.ceil(CANVAS_H / majorStepPx), 1000);
+
+    ctx.strokeStyle = colorMajor;
+    ctx.lineWidth = Math.max(1, 1.5 / view.scale);
+    ctx.beginPath();
+    for (let i = 0; i <= majorCols; i++) { const x = i * majorStepPx; ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_H); }
+    for (let j = 0; j <= majorRows; j++) { const y = j * majorStepPx; ctx.moveTo(0, y); ctx.lineTo(CANVAS_W, y); }
+    ctx.stroke();
+
+    const labelMeters = stepMeters * 5;
+    const label = formatMeters(labelMeters);
+    const labelColor = isDark ? '#555' : '#aaa';
+    ctx.fillStyle = labelColor;
+    const fs = Math.max(9, Math.min(14, 11 / view.scale));
+    ctx.font = `bold ${fs}px -apple-system, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    for (let i = 0; i <= majorCols; i++) {
+        const x = i * majorStepPx;
+        ctx.fillText(label, x + 3 / view.scale, 3 / view.scale);
+    }
+    ctx.textBaseline = 'middle';
+    for (let j = 1; j <= majorRows; j++) {
+        const y = j * majorStepPx;
+        ctx.fillText(label, 3 / view.scale, y + fs / 2);
+    }
+}
+function formatMeters(m) {
+    if (m >= 1000) {
+        const km = m / 1000;
+        return (km % 1 === 0 ? km.toFixed(0) : km.toFixed(1)) + ' км';
+    }
+    return m + ' м';
+}
+
+/* РИСОВАНИЕ ОБЪЕКТОВ */
+function drawObject(obj) {
+    const isHovered = hoveredItem && hoveredItem.type === 'object' && hoveredItem.id === obj.id;
+    const isSelected = selectedItem && selectedItem.type === 'object' && selectedItem.id === obj.id;
+    const canEdit = accessMode && submode === 'layout';
+
+    if (obj.kind === 'line' || obj.kind === 'cap-wall') {
+        drawLineObject(obj, isHovered, isSelected, canEdit);
+    } else if (obj.kind === 'mark') {
+        drawMarkObject(obj, isHovered, isSelected, canEdit);
+    } else {
+        drawRectObject(obj, isHovered, isSelected, canEdit);
+    }
+}
+
+function drawRectObject(obj, isHovered, isSelected, canEdit) {
+    ctx.fillStyle = hexToRgba(obj.color, obj.opacity);
+    ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+    if (obj.borderStyle !== 'none') {
+        ctx.strokeStyle = obj.borderColor || '#000';
+        ctx.lineWidth = (isHovered || isSelected) ? 2 : 1.2;
+        if (obj.borderStyle === 'dashed') ctx.setLineDash([8, 5]);
+        ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
+        ctx.setLineDash([]);
+    }
+    if (obj.name) {
+        ctx.fillStyle = getContrastColor(obj.color);
+        ctx.font = 'bold 13px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        wrapText(obj.name, obj.x + obj.w / 2, obj.y + obj.h / 2, obj.w - 12, 16);
+    }
+    if (isSelected && canEdit) drawRectSelection(obj);
+}
+
+function drawRectSelection(obj) {
+    ctx.strokeStyle = '#7a0e7e';
+    ctx.lineWidth = 1.5 / view.scale;
+    ctx.setLineDash([4 / view.scale, 4 / view.scale]);
+    ctx.strokeRect(obj.x - 3, obj.y - 3, obj.w + 6, obj.h + 6);
+    ctx.setLineDash([]);
+    getRectHandles(obj).forEach(h => {
+        ctx.fillStyle = '#7a0e7e'; ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2 / view.scale;
+        ctx.beginPath(); ctx.arc(h.x, h.y, 6 / view.scale, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+    });
+}
+function getRectHandles(obj) {
+    return [
+        { name: 'nw', x: obj.x, y: obj.y },
+        { name: 'ne', x: obj.x + obj.w, y: obj.y },
+        { name: 'sw', x: obj.x, y: obj.y + obj.h },
+        { name: 'se', x: obj.x + obj.w, y: obj.y + obj.h }
+    ];
+}
+
+/* Стена */
+function drawLineObject(obj, isHovered, isSelected, canEdit) {
+    const isCap = obj.kind === 'cap-wall';
+    const thickness = obj.thickness || (isCap ? 8 : 2);
+    const color = obj.color || (isCap ? '#000' : '#333');
+    const gaps = obj.gaps || [];
+    const segments = computeSegments(obj, gaps);
+
+    segments.forEach(seg => {
+        if (isCap) {
+            drawCapWallSegment(seg, thickness, color, isHovered || isSelected);
+        } else {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = (isHovered || isSelected) ? thickness + 1 : thickness;
+            ctx.lineCap = 'butt';
+            if (obj.borderStyle === 'dashed') ctx.setLineDash([10, 6]);
+            ctx.beginPath();
+            ctx.moveTo(seg.x1, seg.y1);
+            ctx.lineTo(seg.x2, seg.y2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+    });
+
+    gaps.forEach(gap => drawGapMarkers(obj, gap));
+    gaps.forEach(gap => {
+        if (gap.type === 'gate' && gap.dock) drawDock(obj, gap);
+    });
+
+    if (isSelected && canEdit) drawLineSelection(obj, segments);
+}
+
+/* Капитальная стена: заливка + аккуратная обводка прямоугольника */
+function drawCapWallSegment(seg, thickness, fillColor, highlighted) {
+    const dx = seg.x2 - seg.x1;
+    const dy = seg.y2 - seg.y1;
+    const len = Math.hypot(dx, dy);
+    if (len < 0.1) return;
+
+    const ux = dx / len, uy = dy / len;
+    const nx = -uy, ny = ux;
+    const half = thickness / 2;
+
+    const p1x = seg.x1 + nx * half, p1y = seg.y1 + ny * half;
+    const p2x = seg.x2 + nx * half, p2y = seg.y2 + ny * half;
+    const p3x = seg.x2 - nx * half, p3y = seg.y2 - ny * half;
+    const p4x = seg.x1 - nx * half, p4y = seg.y1 - ny * half;
+
+    ctx.fillStyle = fillColor || '#000';
+    ctx.beginPath();
+    ctx.moveTo(p1x, p1y);
+    ctx.lineTo(p2x, p2y);
+    ctx.lineTo(p3x, p3y);
+    ctx.lineTo(p4x, p4y);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = highlighted ? 2 : 1.5;
+    ctx.lineCap = 'butt';
+    ctx.lineJoin = 'miter';
+    ctx.stroke();
+}
+
+function computeSegments(obj, gaps) {
+    const len = Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1);
+    if (len < 0.1) return [];
+    const sortedGaps = [...gaps].map(g => ({
+        start: Math.max(0, g.t - (g.width * PX_PER_M / 2) / len),
+        end: Math.min(1, g.t + (g.width * PX_PER_M / 2) / len)
+    })).sort((a, b) => a.start - b.start);
+    const ux = (obj.x2 - obj.x1) / len;
+    const uy = (obj.y2 - obj.y1) / len;
+    const segments = [];
+    let curStart = 0;
+    for (const g of sortedGaps) {
+        if (g.start > curStart) {
+            segments.push({
+                x1: obj.x1 + ux * curStart * len,
+                y1: obj.y1 + uy * curStart * len,
+                x2: obj.x1 + ux * g.start * len,
+                y2: obj.y1 + uy * g.start * len
+            });
+        }
+        curStart = Math.max(curStart, g.end);
+    }
+    if (curStart < 1) {
+        segments.push({
+            x1: obj.x1 + ux * curStart * len,
+            y1: obj.y1 + uy * curStart * len,
+            x2: obj.x2, y2: obj.y2
+        });
+    }
+    return segments;
+}
+
+function drawGapMarkers(wall, gap) {
+    const len = Math.hypot(wall.x2 - wall.x1, wall.y2 - wall.y1);
+    if (len < 0.1) return;
+    const ux = (wall.x2 - wall.x1) / len;
+    const uy = (wall.y2 - wall.y1) / len;
+    const nx = -uy, ny = ux;
+    const half = (gap.width * PX_PER_M / 2);
+    const cx = wall.x1 + ux * gap.t * len;
+    const cy = wall.y1 + uy * gap.t * len;
+    const p1x = cx - ux * half, p1y = cy - uy * half;
+    const p2x = cx + ux * half, p2y = cy + uy * half;
+    const wallThickness = wall.thickness || (wall.kind === 'cap-wall' ? 8 : 2);
+    const markerLen = Math.max(wallThickness * 1.5, 6);
+
+    ctx.strokeStyle = wall.color || (wall.kind === 'cap-wall' ? '#000' : '#333');
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(p1x, p1y);
+    ctx.lineTo(p1x + nx * markerLen, p1y + ny * markerLen);
+    ctx.moveTo(p2x, p2y);
+    ctx.lineTo(p2x + nx * markerLen, p2y + ny * markerLen);
+    ctx.stroke();
+
+    if (gap.type === 'gate') {
+        const dockColor = getComputedStyle(document.documentElement)
+            .getPropertyValue('--dock-color').trim() || '#999';
+        ctx.setLineDash([3, 2]);
+        ctx.strokeStyle = dockColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(p1x + nx * markerLen * 0.7, p1y + ny * markerLen * 0.7);
+        ctx.lineTo(p2x + nx * markerLen * 0.7, p2y + ny * markerLen * 0.7);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    } else if (gap.type === 'door') {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        ctx.strokeStyle = isDark ? '#888' : '#555';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(p1x, p1y);
+        ctx.lineTo(p2x, p2y);
+        ctx.stroke();
+    }
+}
+
+function drawDock(wall, gap) {
+    const len = Math.hypot(wall.x2 - wall.x1, wall.y2 - wall.y1);
+    if (len < 0.1) return;
+    const ux = (wall.x2 - wall.x1) / len;
+    const uy = (wall.y2 - wall.y1) / len;
+    const nx = -uy, ny = ux;
+    const dock = gap.dock;
+    const side = dock.side || 1;
+    const depth = dock.depth || 15;
+    const width = gap.width;
+    const cx = wall.x1 + ux * gap.t * len;
+    const cy = wall.y1 + uy * gap.t * len;
+    const halfW = (width * PX_PER_M) / 2;
+    const depthPx = depth * PX_PER_M;
+    const p1x = cx - ux * halfW, p1y = cy - uy * halfW;
+    const p2x = cx + ux * halfW, p2y = cy + uy * halfW;
+    const p3x = p2x + nx * side * depthPx, p3y = p2y + ny * side * depthPx;
+    const p4x = p1x + nx * side * depthPx, p4y = p1y + ny * side * depthPx;
+
+    const dockColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--dock-color').trim() || '#999';
+
+    ctx.strokeStyle = dockColor;
+    ctx.lineWidth = 1.2 / view.scale;
+    ctx.setLineDash([8 / view.scale, 6 / view.scale]);
+    ctx.beginPath();
+    ctx.moveTo(p1x, p1y);
+    ctx.lineTo(p2x, p2y);
+    ctx.lineTo(p3x, p3y);
+    ctx.lineTo(p4x, p4y);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    ctx.fillStyle = isDark ? 'rgba(150,150,150,0.06)' : 'rgba(120,120,120,0.05)';
+    ctx.beginPath();
+    ctx.moveTo(p1x, p1y);
+    ctx.lineTo(p2x, p2y);
+    ctx.lineTo(p3x, p3y);
+    ctx.lineTo(p4x, p4y);
+    ctx.closePath();
+    ctx.fill();
+
+    if (dock.name) {
+        ctx.fillStyle = dockColor;
+        ctx.font = 'bold 11px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const mx = (p1x + p3x) / 2;
+        const my = (p1y + p3y) / 2;
+        ctx.fillText(dock.name, mx, my);
+    }
+}
+
+function drawLineSelection(obj, segments) {
+    [{ x: obj.x1, y: obj.y1 }, { x: obj.x2, y: obj.y2 }].forEach(p => {
+        ctx.fillStyle = '#7a0e7e'; ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2 / view.scale;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 6 / view.scale, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+    });
+    const mx = (obj.x1 + obj.x2) / 2;
+    const my = (obj.y1 + obj.y2) / 2;
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath(); ctx.arc(mx, my, 5 / view.scale, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+
+    if (selectedItem && selectedItem.type === 'gap' && selectedItem.objId === obj.id) {
+        const gap = (obj.gaps || []).find(g => g.id === selectedItem.id);
+        if (gap) {
+            const len = Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1);
+            const ux = (obj.x2 - obj.x1) / len;
+            const uy = (obj.y2 - obj.y1) / len;
+            const cx = obj.x1 + ux * gap.t * len;
+            const cy = obj.y1 + uy * gap.t * len;
+            const half = (gap.width * PX_PER_M / 2);
+            const p1x = cx - ux * half, p1y = cy - uy * half;
+            const p2x = cx + ux * half, p2y = cy + uy * half;
+            [{ x: p1x, y: p1y }, { x: p2x, y: p2y }].forEach(p => {
+                ctx.fillStyle = '#eab308'; ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2 / view.scale;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 6 / view.scale, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+            });
+        }
+    }
+}
+
+/* МЕТКИ */
+function drawMarkObject(obj, isHovered, isSelected, canEdit) {
+    const info = MARKS_INFO[obj.markType] || MARKS_INFO.shield;
+    const r = state.settings.markSize;
+    const cx = obj.x, cy = obj.y;
+
+    if (isHovered || isSelected) {
+        ctx.fillStyle = 'rgba(122, 14, 126, 0.18)';
+        ctx.beginPath(); ctx.arc(cx, cy, r * 1.6, 0, Math.PI * 2); ctx.fill();
+    }
+
+    if (info.shape === 'triangle') {
+        ctx.fillStyle = info.bg;
+        ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+        ctx.lineWidth = 0.8;
+        const h = r * 1.15;
+        const w = r * 1.3;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - h);
+        ctx.lineTo(cx + w, cy + h * 0.75);
+        ctx.lineTo(cx - w, cy + h * 0.75);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+    } else if (info.shape === 'circle') {
+        ctx.fillStyle = info.bg;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+    } else {
+        ctx.fillStyle = info.bg;
+        ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+        ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+        ctx.lineWidth = 0.8;
+        ctx.strokeRect(cx - r, cy - r, r * 2, r * 2);
+    }
+
+    if (info.isCross) {
+        ctx.fillStyle = '#fff';
+        const cw = r * 0.32;
+        const cl = r * 0.72;
+        ctx.fillRect(cx - cw / 2, cy - cl, cw, cl * 2);
+        ctx.fillRect(cx - cl, cy - cw / 2, cl * 2, cw);
+    } else {
+        const fontSize = r * 1.5;
+        ctx.font = `${fontSize}px -apple-system, "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(info.emoji, cx, cy + fontSize * 0.05);
+    }
+
+    if (obj.name) {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        ctx.font = 'bold 9px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        if (isDark) {
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillText(obj.name, cx + 0.5, cy + r + 2.5);
+            ctx.fillStyle = '#ddd';
+        } else {
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.fillText(obj.name, cx + 0.5, cy + r + 2.5);
+            ctx.fillStyle = '#333';
+        }
+        ctx.fillText(obj.name, cx, cy + r + 2);
+    }
+
+    if (isSelected && canEdit) {
+        ctx.strokeStyle = '#7a0e7e';
+        ctx.lineWidth = 1.5 / view.scale;
+        ctx.setLineDash([3 / view.scale, 3 / view.scale]);
+        ctx.beginPath(); ctx.arc(cx, cy, r * 1.4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+}
+
+/* КАМЕРА */
+function drawCamera(cam) {
+    const isHovered = hoveredItem && hoveredItem.type === 'camera' && hoveredItem.id === cam.id;
+    const isSelected = selectedItem && selectedItem.type === 'camera' && selectedItem.id === cam.id;
+    const canEdit = accessMode && submode === 'cameras';
+    const fov = cam.fov || 45;
+    const len = cam.length || 20;
+    const fovHalf = (fov / 2) * Math.PI / 180;
+    const angleRad = (cam.angle * Math.PI) / 180 - Math.PI / 2;
+
+    const opacity = state.settings.fovOpacity;
+    const lineWidth = state.settings.fovLine;
+    const camRadius = state.settings.camSize;
+
+    const highlight = isHovered || isSelected;
+    const fillAlpha = highlight ? Math.min(opacity * 2.5, 0.4) : opacity;
+    const strokeAlpha = highlight ? Math.min(opacity * 3, 0.6) : opacity * 1.5;
+
+    ctx.fillStyle = `rgba(122, 14, 126, ${fillAlpha})`;
+    ctx.strokeStyle = `rgba(122, 14, 126, ${strokeAlpha})`;
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+    ctx.moveTo(cam.x, cam.y);
+    ctx.lineTo(cam.x + len * Math.cos(angleRad - fovHalf), cam.y + len * Math.sin(angleRad - fovHalf));
+    ctx.lineTo(cam.x + len * Math.cos(angleRad + fovHalf), cam.y + len * Math.sin(angleRad + fovHalf));
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    // Точка камеры — минимальная обводка
+    const dotColor = highlight ? '#b51bbf' : '#7a0e7e';
+    ctx.fillStyle = dotColor;
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.arc(cam.x, cam.y, camRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Блик
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath();
+    ctx.arc(
+        cam.x - camRadius * 0.35,
+        cam.y - camRadius * 0.35,
+        Math.max(0.35, camRadius * 0.3),
+        0, Math.PI * 2
+    );
+    ctx.fill();
+
+    // Имя выделенной камеры
+    if (isSelected && canEdit && cam.name && view.scale >= 1) {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        ctx.font = '8px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const label = cam.name.length > 20 ? cam.name.slice(0, 18) + '…' : cam.name;
+        if (isDark) {
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillText(label, cam.x + 0.5, cam.y + camRadius + 3.5);
+            ctx.fillStyle = '#aaa';
+        } else {
+            ctx.fillStyle = 'rgba(255,255,255,0.75)';
+            ctx.fillText(label, cam.x + 0.5, cam.y + camRadius + 3.5);
+            ctx.fillStyle = '#666';
+        }
+        ctx.fillText(label, cam.x, cam.y + camRadius + 3);
+    }
+
+    // Маркеры управления
+    if (canEdit && isSelected) {
+        const rotX = cam.x + (len - 8) * Math.cos(angleRad);
+        const rotY = cam.y + (len - 8) * Math.sin(angleRad);
+        const fovX = cam.x + len * Math.cos(angleRad + fovHalf);
+        const fovY = cam.y + len * Math.sin(angleRad + fovHalf);
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.lineWidth = 0.5;
+
+        ctx.fillStyle = '#22c55e';
+        ctx.beginPath(); ctx.arc(rotX, rotY, 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = '#eab308';
+        ctx.beginPath(); ctx.arc(fovX, fovY, 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+}
+
+/* ПРЕВЬЮ */
+function drawDrawPreview() {
+    if (activeTool === 'rect') {
+        const x = Math.min(drawState.start.world.x, drawState.current.world.x);
+        const y = Math.min(drawState.start.world.y, drawState.current.world.y);
+        const w = Math.abs(drawState.current.world.x - drawState.start.world.x);
+        const h = Math.abs(drawState.current.world.y - drawState.start.world.y);
+        ctx.fillStyle = 'rgba(122, 14, 126, 0.1)';
+        ctx.strokeStyle = '#7a0e7e';
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 1.5 / view.scale;
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeRect(x, y, w, h);
+        ctx.setLineDash([]);
+        drawSizeLabel(w / PX_PER_M, h / PX_PER_M, x + w / 2, y - 14 / view.scale);
+    } else if (activeTool === 'line' || activeTool === 'cap-wall') {
+        ctx.strokeStyle = '#7a0e7e';
+        ctx.lineWidth = (activeTool === 'cap-wall' ? 8 : 2) / view.scale;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(drawState.start.world.x, drawState.start.world.y);
+        ctx.lineTo(drawState.current.world.x, drawState.current.world.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        const dx = drawState.current.world.x - drawState.start.world.x;
+        const dy = drawState.current.world.y - drawState.start.world.y;
+        const len = Math.hypot(dx, dy) / PX_PER_M;
+        let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        if (angle < 0) angle += 360;
+        drawSizeLabel(len, angle,
+            (drawState.start.world.x + drawState.current.world.x) / 2,
+            (drawState.start.world.y + drawState.current.world.y) / 2 - 20 / view.scale, true);
+    }
+}
+
+function drawSizeLabel(w, h, cx, cy, isAngle) {
+    const text = isAngle ? `${w.toFixed(1)} м · ${h.toFixed(0)}°` : `${w.toFixed(1)} × ${h.toFixed(1)} м`;
+    ctx.font = `bold ${13 / view.scale}px -apple-system, sans-serif`;
+    const metrics = ctx.measureText(text);
+    const pad = 6 / view.scale;
+    const bw = metrics.width + pad * 2;
+    const bh = 22 / view.scale;
+    ctx.fillStyle = 'rgba(122, 14, 126, 0.95)';
+    ctx.beginPath();
+    roundRect(ctx, cx - bw / 2, cy - bh / 2, bw, bh, 4 / view.scale);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, cx, cy);
+}
+function roundRect(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+}
+
+/* ХИТ-ТЕСТЫ */
+function hitTestObject(world, obj) {
+    if (obj.kind === 'line' || obj.kind === 'cap-wall') {
+        const d = distToSegment(world, { x: obj.x1, y: obj.y1 }, { x: obj.x2, y: obj.y2 });
+        const threshold = Math.max(8, (obj.thickness || 4) / 2 + 5);
+        return d < threshold;
+    }
+    if (obj.kind === 'mark') {
+        return Math.hypot(world.x - obj.x, world.y - obj.y) < state.settings.markSize * 1.2;
+    }
+    return world.x >= obj.x && world.x <= obj.x + obj.w &&
+           world.y >= obj.y && world.y <= obj.y + obj.h;
+}
+function hitTestCamera(world, cam) {
+    return Math.hypot(world.x - cam.x, world.y - cam.y) < 6;
+}
+function hitTestGap(world, wall) {
+    if (!wall.gaps) return null;
+    const len = Math.hypot(wall.x2 - wall.x1, wall.y2 - wall.y1);
+    if (len < 0.1) return null;
+    const ux = (wall.x2 - wall.x1) / len;
+    const uy = (wall.y2 - wall.y1) / len;
+    const nx = -uy, ny = ux;
+    const wallThickness = wall.thickness || (wall.kind === 'cap-wall' ? 8 : 2);
+    const threshold = Math.max(8, wallThickness / 2 + 6);
+    for (const gap of wall.gaps) {
+        const dx = world.x - wall.x1;
+        const dy = world.y - wall.y1;
+        const proj = dx * ux + dy * uy;
+        const perp = Math.abs(dx * nx + dy * ny);
+        const gapStart = gap.t * len - (gap.width * PX_PER_M / 2);
+        const gapEnd = gap.t * len + (gap.width * PX_PER_M / 2);
+        if (proj >= gapStart && proj <= gapEnd && perp < threshold) return gap;
+    }
+    return null;
+}
+function findGapHandle(world, wall, gap) {
+    const len = Math.hypot(wall.x2 - wall.x1, wall.y2 - wall.y1);
+    if (len < 0.1) return null;
+    const ux = (wall.x2 - wall.x1) / len;
+    const uy = (wall.y2 - wall.y1) / len;
+    const cx = wall.x1 + ux * gap.t * len;
+    const cy = wall.y1 + uy * gap.t * len;
+    const half = (gap.width * PX_PER_M / 2);
+    const p1x = cx - ux * half, p1y = cy - uy * half;
+    const p2x = cx + ux * half, p2y = cy + uy * half;
+    const h = 10 / view.scale;
+    if (Math.hypot(world.x - p1x, world.y - p1y) < h) return 'left';
+    if (Math.hypot(world.x - p2x, world.y - p2y) < h) return 'right';
+    return 'move';
+}
+function distToSegment(p, a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy;
+    if (len2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+    let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+function findRectHandle(world, obj) {
+    for (const h of getRectHandles(obj)) {
+        if (Math.hypot(world.x - h.x, world.y - h.y) < 10 / view.scale) return h.name;
+    }
+    return null;
+}
+function findLineEnd(world, obj) {
+    if (Math.hypot(world.x - obj.x1, world.y - obj.y1) < 10 / view.scale) return 'p1';
+    if (Math.hypot(world.x - obj.x2, world.y - obj.y2) < 10 / view.scale) return 'p2';
+    const mx = (obj.x1 + obj.x2) / 2, my = (obj.y1 + obj.y2) / 2;
+    if (Math.hypot(world.x - mx, world.y - my) < 10 / view.scale) return 'mid';
+    return null;
+}
+
+/* ОБРАБОТЧИКИ */
+let isPanning = false;
+let panStart = { x: 0, y: 0, ox: 0, oy: 0 };
+let spacePressed = false;
+let dragMoved = false;
+
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && !e.repeat && document.activeElement.tagName !== 'INPUT') {
+        spacePressed = true; canvas.style.cursor = 'grab'; e.preventDefault();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        if (document.activeElement.tagName !== 'INPUT') { e.preventDefault(); undo(); }
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+        if (document.activeElement.tagName !== 'INPUT') { e.preventDefault(); redo(); }
+    }
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Delete' && selectedItem && document.activeElement.tagName !== 'INPUT') deleteSelected();
+});
+window.addEventListener('keyup', (e) => {
+    if (e.code === 'Space') {
+        spacePressed = false; canvas.style.cursor = getCursor();
+    }
+});
+
+canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const sx = e.clientX - rect.left;
+    const sy = e.clientY - rect.top;
+    const factor = e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
+    zoomAt(sx, sy, factor);
+}, { passive: false });
+
+canvas.addEventListener('mousedown', onDown);
+canvas.addEventListener('mousemove', onMove);
+canvas.addEventListener('mouseup', onUp);
+canvas.addEventListener('mouseleave', onLeave);
+canvas.addEventListener('dblclick', onDblClick);
+
+function getCursor() {
+    if (isPanning) return 'grabbing';
+    if (spacePressed) return 'grab';
+    if (!accessMode) return hoveredItem && hoveredItem.type === 'camera' ? 'pointer' : 'default';
+    if (submode === 'layout') {
+        if (activeTool === 'select') return hoveredItem ? 'pointer' : 'default';
+        return 'crosshair';
+    }
+    return 'default';
+}
+
+function onDown(e) {
+    const pos = getMousePos(e);
+    if (spacePressed || e.button === 1) {
+        isPanning = true;
+        panStart = { x: pos.screen.x, y: pos.screen.y, ox: view.offsetX, oy: view.offsetY };
+        canvas.style.cursor = 'grabbing';
+        e.preventDefault(); return;
+    }
+    if (e.button !== 0) return;
+    if (!accessMode) return;
+    if (submode === 'layout') onLayoutDown(pos, e);
+    else if (submode === 'cameras') onCamerasDown(pos, e);
+}
+
+function onLayoutDown(pos, e) {
+    const world = pos.world;
+    if (selectedItem && selectedItem.type === 'object') {
+        const obj = state.objects.find(o => o.id === selectedItem.id);
+        if (obj && (obj.kind === 'line' || obj.kind === 'cap-wall')) {
+            const gap = hitTestGap(world, obj);
+            if (gap) {
+                const handle = findGapHandle(world, obj, gap);
+                selectedItem = { type: 'gap', id: gap.id, objId: obj.id };
+                dragState = {
+                    type: 'gap', gapId: gap.id, wallId: obj.id,
+                    mode: handle, startWorld: world,
+                    orig: { t: gap.t, width: gap.width }
+                };
+                pushHistory(); renderSidebar(); renderPropsPanel(); redraw();
+                e.preventDefault(); return;
+            }
+        }
+    }
+    for (let i = state.objects.length - 1; i >= 0; i--) {
+        const obj = state.objects[i];
+        if (obj.kind !== 'line' && obj.kind !== 'cap-wall') continue;
+        if (hitTestObject(world, obj)) {
+            const gap = hitTestGap(world, obj);
+            if (gap) {
+                selectedItem = { type: 'gap', id: gap.id, objId: obj.id };
+                const handle = findGapHandle(world, obj, gap);
+                dragState = {
+                    type: 'gap', gapId: gap.id, wallId: obj.id,
+                    mode: handle, startWorld: world,
+                    orig: { t: gap.t, width: gap.width }
+                };
+                pushHistory(); renderSidebar(); renderPropsPanel(); redraw();
+                e.preventDefault(); return;
+            }
+            selectedItem = { type: 'object', id: obj.id };
+            const end = findLineEnd(world, obj);
+            if (end) {
+                dragState = {
+                    type: 'object', id: obj.id, mode: 'line-' + end,
+                    startWorld: world,
+                    orig: { x1: obj.x1, y1: obj.y1, x2: obj.x2, y2: obj.y2 }
+                };
+            } else {
+                dragState = {
+                    type: 'object', id: obj.id, mode: 'line-mid',
+                    startWorld: world,
+                    orig: { x1: obj.x1, y1: obj.y1, x2: obj.x2, y2: obj.y2 }
+                };
+            }
+            pushHistory(); renderSidebar(); renderPropsPanel(); redraw();
+            e.preventDefault(); return;
+        }
+    }
+    for (let i = state.objects.length - 1; i >= 0; i--) {
+        const obj = state.objects[i];
+        if (obj.kind === 'line' || obj.kind === 'cap-wall') continue;
+        if (hitTestObject(world, obj)) {
+            selectedItem = { type: 'object', id: obj.id };
+            if (obj.kind === 'mark') {
+                dragState = {
+                    type: 'object', id: obj.id, mode: 'move-mark',
+                    startWorld: world, orig: { x: obj.x, y: obj.y }
+                };
+            } else {
+                const handle = findRectHandle(world, obj);
+                if (handle) {
+                    dragState = {
+                        type: 'object', id: obj.id, mode: 'resize', handle,
+                        startWorld: world,
+                        orig: { x: obj.x, y: obj.y, w: obj.w, h: obj.h }
+                    };
+                } else {
+                    dragState = {
+                        type: 'object', id: obj.id, mode: 'move',
+                        startWorld: world, orig: { x: obj.x, y: obj.y }
+                    };
+                }
+            }
+            pushHistory(); renderSidebar(); renderPropsPanel(); redraw();
+            e.preventDefault(); return;
+        }
+    }
+    if (activeTool === 'select') {
+        selectedItem = null;
+        renderSidebar(); renderPropsPanel(); redraw(); return;
+    }
+    if (activeTool === 'gap') {
+        for (let i = state.objects.length - 1; i >= 0; i--) {
+            const obj = state.objects[i];
+            if (obj.kind !== 'line' && obj.kind !== 'cap-wall') continue;
+            if (hitTestObject(world, obj)) {
+                addGapToWall(obj, world);
+                e.preventDefault(); return;
+            }
+        }
+        e.preventDefault(); return;
+    }
+    if (activeTool === 'mark') {
+        const snapped = snapWorld(world);
+        createMark(snapped);
+        e.preventDefault(); return;
+    }
+    if (activeTool === 'rect' || activeTool === 'line' || activeTool === 'cap-wall') {
+        selectedItem = null;
+        const snapped = snapWorld(world);
+        drawState = { start: { world: snapped }, current: { world: snapped } };
+        e.preventDefault();
+    }
+}
+
+function onCamerasDown(pos, e) {
+    const world = pos.world;
+    if (selectedItem && selectedItem.type === 'camera') {
+        const cam = state.cameras.find(c => c.id === selectedItem.id);
+        if (cam) {
+            const fov = cam.fov || 45, len = cam.length || 20;
+            const angleRad = (cam.angle * Math.PI) / 180 - Math.PI / 2;
+            const rotX = cam.x + (len - 8) * Math.cos(angleRad);
+            const rotY = cam.y + (len - 8) * Math.sin(angleRad);
+            const fovX = cam.x + len * Math.cos(angleRad + (fov / 2) * Math.PI / 180);
+            const fovY = cam.y + len * Math.sin(angleRad + (fov / 2) * Math.PI / 180);
+            if (Math.hypot(world.x - rotX, world.y - rotY) < 8) {
+                dragState = { type: 'camera', id: cam.id, mode: 'rotate' };
+                pushHistory(); e.preventDefault(); return;
+            }
+            if (Math.hypot(world.x - fovX, world.y - fovY) < 8) {
+                dragState = { type: 'camera', id: cam.id, mode: 'fov' };
+                pushHistory(); e.preventDefault(); return;
+            }
+        }
+    }
+    for (let i = state.cameras.length - 1; i >= 0; i--) {
+        const cam = state.cameras[i];
+        if (hitTestCamera(world, cam)) {
+            selectedItem = { type: 'camera', id: cam.id };
+            dragState = { type: 'camera', id: cam.id, mode: 'move', startWorld: world, orig: { x: cam.x, y: cam.y } };
+            pushHistory(); renderSidebar(); renderPropsPanel(); redraw();
+            e.preventDefault(); return;
+        }
+    }
+    dragState = { type: 'newCamera', world };
+    e.preventDefault();
+}
+
+function onMove(e) {
+    const pos = getMousePos(e);
+    const world = pos.world;
+    updateCoordsHud(world);
+    if (isPanning) {
+        view.offsetX = panStart.ox + (pos.screen.x - panStart.x);
+        view.offsetY = panStart.oy + (pos.screen.y - panStart.y);
+        redraw(); return;
+    }
+    if (drawState) {
+        drawState.current = { world: snapWorld(world) };
+        redraw(); return;
+    }
+    if (dragState) { dragMoved = true; handleDrag(world); return; }
+    updateHover(world);
+}
+
+function handleDrag(world) {
+    const { type, id, mode } = dragState;
+    const snapped = snapWorld(world);
+    if (type === 'object') {
+        const obj = state.objects.find(o => o.id === id);
+        if (!obj) return;
+        if (mode === 'move' || mode === 'move-mark') {
+            const dx = snapped.x - dragState.startWorld.x;
+            const dy = snapped.y - dragState.startWorld.y;
+            obj.x = dragState.orig.x + dx;
+            obj.y = dragState.orig.y + dy;
+        } else if (mode === 'resize') {
+            const o = dragState.orig;
+            const dx = snapped.x - dragState.startWorld.x;
+            const dy = snapped.y - dragState.startWorld.y;
+            const h = dragState.handle;
+            let nx = o.x, ny = o.y, nw = o.w, nh = o.h;
+            if (h === 'nw') { nx = o.x + dx; ny = o.y + dy; nw = o.w - dx; nh = o.h - dy; }
+            else if (h === 'ne') { ny = o.y + dy; nw = o.w + dx; nh = o.h - dy; }
+            else if (h === 'sw') { nx = o.x + dx; nw = o.w - dx; nh = o.h + dy; }
+            else if (h === 'se') { nw = o.w + dx; nh = o.h + dy; }
+            if (nw < 10) { nw = 10; nx = o.x + o.w - 10; }
+            if (nh < 10) { nh = 10; ny = o.y + o.h - 10; }
+            obj.x = nx; obj.y = ny; obj.w = nw; obj.h = nh;
+        } else if (mode.startsWith('line-')) {
+            const o = dragState.orig;
+            const dx = snapped.x - dragState.startWorld.x;
+            const dy = snapped.y - dragState.startWorld.y;
+            if (mode === 'line-p1') {
+                const snapPt = findWallSnapPoint(snapped, obj.id);
+                if (snapPt) { obj.x1 = snapPt.x; obj.y1 = snapPt.y; }
+                else { obj.x1 = snapped.x; obj.y1 = snapped.y; }
+            } else if (mode === 'line-p2') {
+                const snapPt = findWallSnapPoint(snapped, obj.id);
+                if (snapPt) { obj.x2 = snapPt.x; obj.y2 = snapPt.y; }
+                else { obj.x2 = snapped.x; obj.y2 = snapped.y; }
+            } else if (mode === 'line-mid') {
+                obj.x1 = o.x1 + dx; obj.y1 = o.y1 + dy;
+                obj.x2 = o.x2 + dx; obj.y2 = o.y2 + dy;
+            }
+        }
+    } else if (type === 'camera') {
+        const cam = state.cameras.find(c => c.id === id);
+        if (!cam) return;
+        if (mode === 'move') {
+            const dx = world.x - dragState.startWorld.x;
+            const dy = world.y - dragState.startWorld.y;
+            cam.x = dragState.orig.x + dx;
+            cam.y = dragState.orig.y + dy;
+        } else if (mode === 'rotate') {
+            let angle = Math.atan2(world.y - cam.y, world.x - cam.x) * 180 / Math.PI + 90;
+            if (angle < 0) angle += 360;
+            cam.angle = Math.round(angle);
+        } else if (mode === 'fov') {
+            cam.length = Math.max(15, Math.min(400, Math.round(Math.hypot(world.x - cam.x, world.y - cam.y))));
+            let cur = Math.atan2(world.y - cam.y, world.x - cam.x) * 180 / Math.PI + 90;
+            if (cur < 0) cur += 360;
+            let diff = cur - cam.angle;
+            if (diff > 180) diff -= 360;
+            if (diff < -180) diff += 360;
+            cam.fov = Math.max(15, Math.min(160, Math.round(Math.abs(diff) * 2)));
+        }
+    } else if (type === 'gap') {
+        const wall = state.objects.find(o => o.id === dragState.wallId);
+        if (!wall || !wall.gaps) return;
+        const gap = wall.gaps.find(g => g.id === dragState.gapId);
+        if (!gap) return;
+        const len = Math.hypot(wall.x2 - wall.x1, wall.y2 - wall.y1);
+        if (len < 0.1) return;
+        const ux = (wall.x2 - wall.x1) / len;
+        const uy = (wall.y2 - wall.y1) / len;
+        const dx = world.x - wall.x1;
+        const dy = world.y - wall.y1;
+        const proj = dx * ux + dy * uy;
+        if (mode === 'move') {
+            gap.t = Math.max(0.01, Math.min(0.99, proj / len));
+        } else if (mode === 'left') {
+            const newStart = proj;
+            const gapCenterProj = dragState.orig.t * len;
+            const halfW = Math.max(3, gapCenterProj - newStart) / PX_PER_M;
+            gap.width = Math.max(0.3, Math.min(15, halfW));
+            gap.t = (gapCenterProj - gap.width * PX_PER_M) / len;
+        } else if (mode === 'right') {
+            const newEnd = proj;
+            const gapCenterProj = dragState.orig.t * len;
+            const halfW = Math.max(3, newEnd - gapCenterProj) / PX_PER_M;
+            gap.width = Math.max(0.3, Math.min(15, halfW));
+            gap.t = (gapCenterProj + gap.width * PX_PER_M) / len;
+        }
+        gap.t = Math.max(0.01, Math.min(0.99, gap.t));
+    }
+    renderPropsPanel();
+    redraw();
+}
+
+function updateHover(world) {
+    let nh = null;
+    if (!accessMode) {
+        for (let i = state.cameras.length - 1; i >= 0; i--) {
+            if (hitTestCamera(world, state.cameras[i])) { nh = { type: 'camera', id: state.cameras[i].id }; break; }
+        }
+    } else if (submode === 'layout') {
+        for (let i = state.objects.length - 1; i >= 0; i--) {
+            const obj = state.objects[i];
+            if (obj.kind !== 'line' && obj.kind !== 'cap-wall') continue;
+            if (hitTestObject(world, obj)) { nh = { type: 'object', id: obj.id }; break; }
+        }
+        if (!nh) {
+            for (let i = state.objects.length - 1; i >= 0; i--) {
+                const obj = state.objects[i];
+                if (obj.kind === 'line' || obj.kind === 'cap-wall') continue;
+                if (hitTestObject(world, obj)) { nh = { type: 'object', id: obj.id }; break; }
+            }
+        }
+    } else if (submode === 'cameras') {
+        for (let i = state.cameras.length - 1; i >= 0; i--) {
+            if (hitTestCamera(world, state.cameras[i])) { nh = { type: 'camera', id: state.cameras[i].id }; break; }
+        }
+    }
+    const changed = JSON.stringify(nh) !== JSON.stringify(hoveredItem);
+    hoveredItem = nh;
+    if (changed) { canvas.style.cursor = getCursor(); redraw(); }
+}
+
+function updateCoordsHud(world) {
+    const px = Math.round(world.x);
+    const py = Math.round(world.y);
+    const mx = (world.x / PX_PER_M).toFixed(1);
+    const my = (world.y / PX_PER_M).toFixed(1);
+    document.getElementById('hud-coords').innerText = `x: ${px} px (${mx} м) · y: ${py} px (${my} м)`;
+}
+
+function onUp(e) {
+    if (isPanning) { isPanning = false; canvas.style.cursor = getCursor(); return; }
+    if (drawState) { finishDrawing(); return; }
+    if (dragState) {
+        if (dragState.type === 'newCamera') {
+            const w = dragState.world;
+            dragState = null;
+            editingId = null; editingType = 'camera';
+            tempCoords = { x: w.x, y: w.y };
+            openCameraModal(null, tempCoords);
+            return;
+        }
+        if (!dragMoved) { dragState = null; return; }
+        dragState = null; dragMoved = false;
+        saveState();
+        renderSidebar(); renderPropsPanel(); redraw();
+    }
+}
+
+function onLeave() {
+    if (dragState && dragMoved) {
+        dragState = null; dragMoved = false;
+        saveState(); redraw();
+    }
+    if (isPanning) isPanning = false;
+    hoveredItem = null;
+    canvas.style.cursor = getCursor();
+    redraw();
+}
+
+function finishDrawing() {
+    const start = drawState.start.world;
+    const end = drawState.current.world;
+    drawState = null;
+
+    if (activeTool === 'rect') {
+        const x = Math.min(start.x, end.x);
+        const y = Math.min(start.y, end.y);
+        const w = Math.abs(end.x - start.x);
+        const h = Math.abs(end.y - start.y);
+        if (w > 8 && h > 8) {
+            pushHistory();
+            const newId = 'obj_' + Date.now() + '_' + (state.counter.obj++);
+            const obj = {
+                id: newId, kind: 'rect',
+                x, y, w, h,
+                name: 'Зона ' + state.counter.obj,
+                color: PALETTE[0], opacity: 0.3,
+                borderColor: '#000000', borderStyle: 'solid'
+            };
+            state.objects.push(obj);
+            selectedItem = { type: 'object', id: newId };
+            setTool('select', true);
+            saveState();
+            renderSidebar(); renderPropsPanel(); redraw();
+        } else redraw();
+    } else if (activeTool === 'line' || activeTool === 'cap-wall') {
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        if (Math.hypot(dx, dy) > 8) {
+            const snapEnd = findWallSnapPoint(end, null);
+            const snapStart = findWallSnapPoint(start, null);
+            const finalEnd = snapEnd || end;
+            const finalStart = snapStart || start;
+
+            pushHistory();
+            const newId = 'obj_' + Date.now() + '_' + (state.counter.obj++);
+            const isCap = activeTool === 'cap-wall';
+            const obj = {
+                id: newId,
+                kind: isCap ? 'cap-wall' : 'line',
+                x1: finalStart.x, y1: finalStart.y,
+                x2: finalEnd.x, y2: finalEnd.y,
+                name: isCap ? 'Капит. стена ' + state.counter.obj : 'Стена ' + state.counter.obj,
+                color: isCap ? '#000000' : '#333333',
+                thickness: isCap ? 8 : 2,
+                borderStyle: 'solid',
+                gaps: []
+            };
+            state.objects.push(obj);
+            selectedItem = { type: 'object', id: newId };
+            setTool('select', true);
+            saveState();
+            renderSidebar(); renderPropsPanel(); redraw();
+        } else redraw();
+    }
+}
+
+function onDblClick(e) {
+    if (!accessMode) return;
+    const pos = getMousePos(e);
+    const world = pos.world;
+    if (submode === 'layout') {
+        for (let i = state.objects.length - 1; i >= 0; i--) {
+            if (hitTestObject(world, state.objects[i])) {
+                selectedItem = { type: 'object', id: state.objects[i].id };
+                renderSidebar(); renderPropsPanel(); redraw();
+                return;
+            }
+        }
+    } else if (submode === 'cameras') {
+        for (let i = state.cameras.length - 1; i >= 0; i--) {
+            if (hitTestCamera(world, state.cameras[i])) {
+                openCameraModal(state.cameras[i].id);
+                return;
+            }
+        }
+    }
+}
+
+canvas.addEventListener('click', (e) => {
+    if (accessMode) return;
+    const pos = getMousePos(e);
+    for (let i = state.cameras.length - 1; i >= 0; i--) {
+        const cam = state.cameras[i];
+        if (hitTestCamera(pos.world, cam)) {
+            if (cam.url && cam.url !== 'https://') window.open(cam.url, '_blank');
+            return;
+        }
+    }
+});
+
+/* СОЗДАНИЕ */
+function addGapToWall(wall, world) {
+    const len = Math.hypot(wall.x2 - wall.x1, wall.y2 - wall.y1);
+    if (len < 0.1) return;
+    const ux = (wall.x2 - wall.x1) / len;
+    const uy = (wall.y2 - wall.y1) / len;
+    const dx = world.x - wall.x1;
+    const dy = world.y - wall.y1;
+    const proj = dx * ux + dy * uy;
+    let t = proj / len;
+    t = Math.max(0.01, Math.min(0.99, t));
+    if (!wall.gaps) wall.gaps = [];
+    const type = activeGapType;
+    const def = GAP_TYPES[type];
+    pushHistory();
+    const gapId = 'gap_' + Date.now() + '_' + (state.counter.gap++);
+    const gap = {
+        id: gapId, t,
+        width: def.defaultWidth,
+        type,
+        name: def.label + ' ' + state.counter.gap
+    };
+    if (type === 'gate') {
+        gap.dock = { depth: 15, side: 1, name: '' };
+    }
+    wall.gaps.push(gap);
+    selectedItem = { type: 'gap', id: gapId, objId: wall.id };
+    saveState();
+    renderSidebar(); renderPropsPanel(); redraw();
+}
+
+function createMark(pos) {
+    pushHistory();
+    const id = 'obj_' + Date.now() + '_' + (state.counter.obj++);
+    const obj = {
+        id, kind: 'mark',
+        markType: activeMarkType,
+        x: pos.x, y: pos.y,
+        name: ''
+    };
+    state.objects.push(obj);
+    selectedItem = { type: 'object', id };
+    saveState();
+    renderSidebar(); renderPropsPanel(); redraw();
+}
+
+/* ПАНЕЛЬ СВОЙСТВ */
+function renderPropsPanel() {
+    const panel = document.getElementById('props-panel');
+    const body = document.getElementById('props-body');
+    const title = document.getElementById('props-title');
+    const typeBadge = document.getElementById('props-type');
+    const deleteBtn = document.getElementById('props-delete-btn');
+
+    const showForDrawing = accessMode && submode === 'layout' && activeTool !== 'select';
+    const hasSelection = selectedItem && accessMode;
+
+    if (!showForDrawing && !hasSelection) {
+        panel.classList.remove('visible'); return;
+    }
+    panel.classList.add('visible');
+
+    if (hasSelection) {
+        if (selectedItem.type === 'object') {
+            const obj = state.objects.find(o => o.id === selectedItem.id);
+            if (!obj) { panel.classList.remove('visible'); return; }
+            renderObjectProps(obj, body, title, typeBadge, deleteBtn);
+        } else if (selectedItem.type === 'camera') {
+            const cam = state.cameras.find(c => c.id === selectedItem.id);
+            if (!cam) { panel.classList.remove('visible'); return; }
+            renderCameraProps(cam, body, title, typeBadge, deleteBtn);
+        } else if (selectedItem.type === 'gap') {
+            const wall = state.objects.find(o => o.id === selectedItem.objId);
+            const gap = wall && wall.gaps ? wall.gaps.find(g => g.id === selectedItem.id) : null;
+            if (!gap) { panel.classList.remove('visible'); return; }
+            renderGapProps(wall, gap, body, title, typeBadge, deleteBtn);
+        }
+    } else {
+        title.innerText = 'Инструмент';
+        typeBadge.style.display = 'inline-block';
+        if (activeTool === 'rect') typeBadge.innerText = 'Зона';
+        else if (activeTool === 'line') typeBadge.innerText = 'Стена';
+        else if (activeTool === 'cap-wall') typeBadge.innerText = 'Капит.';
+        else if (activeTool === 'gap') typeBadge.innerText = 'Проём';
+        else if (activeTool === 'mark') typeBadge.innerText = 'Метка';
+
+        if (activeTool === 'gap') {
+            body.innerHTML = `
+                <div class="prop-row">
+                    <label>Тип проёма</label>
+                    <div class="style-btns">
+                        ${Object.entries(GAP_TYPES).map(([k, v]) => `
+                            <div class="style-btn ${k === activeGapType ? 'active' : ''}"
+                                 onclick="setGapType('${k}')">${v.label}</div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div style="color:var(--text-muted); font-size:12px; line-height:1.5;">
+                    Кликните по стене, чтобы вставить проём.
+                </div>
+            `;
+        } else if (activeTool === 'mark') {
+            body.innerHTML = `
+                <div class="prop-row">
+                    <label>Тип метки</label>
+                    <div class="style-btns">
+                        ${Object.entries(MARKS_INFO).map(([k, v]) => `
+                            <div class="style-btn ${k === activeMarkType ? 'active' : ''}"
+                                 onclick="setMarkType('${k}')">${v.label}</div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div style="color:var(--text-muted); font-size:12px; line-height:1.5;">
+                    Кликните на карту, чтобы разместить метку.
+                </div>
+            `;
+        } else {
+            body.innerHTML = `
+                <div style="color:var(--text-muted); font-size:12px; line-height:1.5;">
+                    Нарисуйте ${activeTool === 'rect' ? 'прямоугольник' : 'линию'} на canvas.
+                </div>
+            `;
+        }
+        deleteBtn.style.display = 'none';
+    }
+}
+
+function setGapType(type) { activeGapType = type; renderPropsPanel(); }
+function setMarkType(type) { activeMarkType = type; renderPropsPanel(); }
+
+function renderObjectProps(obj, body, title, typeBadge, deleteBtn) {
+    const isLine = obj.kind === 'line' || obj.kind === 'cap-wall';
+    const isMark = obj.kind === 'mark';
+
+    if (isLine) {
+        title.innerText = 'Стена';
+        typeBadge.style.display = 'inline-block';
+        typeBadge.innerText = obj.kind === 'cap-wall' ? 'Капит.' : 'Стена';
+    } else if (isMark) {
+        title.innerText = 'Метка';
+        typeBadge.style.display = 'inline-block';
+        typeBadge.innerText = (MARKS_INFO[obj.markType]?.label || 'Метка').split(' ')[0];
+    } else {
+        title.innerText = 'Зона';
+        typeBadge.style.display = 'inline-block';
+        typeBadge.innerText = 'Зона';
+    }
+
+    let html = `
+        <div class="prop-row">
+            <label>Название</label>
+            <input type="text" value="${escapeAttr(obj.name || '')}" oninput="updateProp('name', this.value)">
+        </div>
+    `;
+
+    if (isMark) {
+        html += `
+            <div class="prop-row">
+                <label>Тип метки</label>
+                <div class="style-btns">
+                    ${Object.entries(MARKS_INFO).map(([k, v]) => `
+                        <div class="style-btn ${k === obj.markType ? 'active' : ''}"
+                             onclick="updateProp('markType', '${k}')">${v.label}</div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } else if (!isLine) {
+        html += `
+            <div class="prop-row">
+                <label>Цвет заливки</label>
+                <div class="color-grid">
+                    ${PALETTE.map(c => `
+                        <div class="color-swatch ${c === obj.color ? 'selected' : ''}"
+                             style="background:${c};"
+                             onclick="updateProp('color', '${c}')"></div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="prop-row">
+                <label>Прозрачность</label>
+                <input type="range" min="0.05" max="1" step="0.05" value="${obj.opacity}"
+                       oninput="updateProp('opacity', parseFloat(this.value))">
+                <div class="range-info"><span>Прозрачность</span><span>${Math.round(obj.opacity * 100)}%</span></div>
+            </div>
+            <div class="prop-row">
+                <label>Цвет границы</label>
+                <div class="color-grid">
+                    ${PALETTE.map(c => `
+                        <div class="color-swatch ${c === (obj.borderColor || '#000000') ? 'selected' : ''}"
+                             style="background:${c};"
+                             onclick="updateProp('borderColor', '${c}')"></div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="prop-row">
+                <label>Стиль границы</label>
+                <div class="style-btns">
+                    ${BORDER_STYLES.map(s => `
+                        <div class="style-btn ${s.value === obj.borderStyle ? 'active' : ''}"
+                             onclick="updateProp('borderStyle', '${s.value}')">${s.label}</div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="prop-row">
+                <label>Размер</label>
+                <div style="font-size:12px; color:var(--text-muted);">
+                    ${(obj.w / PX_PER_M).toFixed(1)} × ${(obj.h / PX_PER_M).toFixed(1)} м
+                </div>
+            </div>
+        `;
+    } else {
+        const isCap = obj.kind === 'cap-wall';
+        html += `
+            <div class="prop-row">
+                <label>${isCap ? 'Цвет заливки' : 'Цвет'}</label>
+                <div class="color-grid">
+                    ${PALETTE.map(c => `
+                        <div class="color-swatch ${c === obj.color ? 'selected' : ''}"
+                             style="background:${c};"
+                             onclick="updateProp('color', '${c}')"></div>
+                    `).join('')}
+                </div>
+                ${isCap ? '<div style="font-size:11px; color:var(--text-muted); margin-top:6px;">Границы всегда чёрные</div>' : ''}
+            </div>
+            <div class="prop-row">
+                <label>Толщина</label>
+                <input type="range" min="1" max="20" step="1" value="${obj.thickness || 2}"
+                       oninput="updateProp('thickness', parseInt(this.value))">
+                <div class="range-info"><span>${obj.thickness || 2} px</span><span>${((obj.thickness || 2) / PX_PER_M).toFixed(2)} м</span></div>
+            </div>
+            <div class="prop-row">
+                <label>Стиль</label>
+                <div class="style-btns">
+                    <div class="style-btn ${obj.borderStyle === 'solid' ? 'active' : ''}"
+                         onclick="updateProp('borderStyle', 'solid')">Сплошная</div>
+                    <div class="style-btn ${obj.borderStyle === 'dashed' ? 'active' : ''}"
+                         onclick="updateProp('borderStyle', 'dashed')">Пунктир</div>
+                </div>
+            </div>
+            <div class="prop-row">
+                <label>Размер</label>
+                <div style="font-size:12px; color:var(--text-muted);">
+                    Длина: ${(Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1) / PX_PER_M).toFixed(1)} м
+                </div>
+            </div>
+            <div class="prop-row">
+                <label>Проёмы (${(obj.gaps || []).length})</label>
+                <div class="gaps-list">
+                    ${renderGapsListHTML(obj)}
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="addGapToSelectedWall()">+ Добавить проём</button>
+            </div>
+        `;
+    }
+    body.innerHTML = html;
+    deleteBtn.style.display = '';
+}
+
+function renderGapsListHTML(wall) {
+    const gaps = wall.gaps || [];
+    if (gaps.length === 0) {
+        return '<div style="color:var(--text-muted); font-size:11px; padding:4px 0;">Проёмов нет</div>';
+    }
+    return gaps.map(g => {
+        const t = GAP_TYPES[g.type] || GAP_TYPES.pass;
+        const isSel = selectedItem && selectedItem.type === 'gap' && selectedItem.id === g.id;
+        return `
+            <div class="gap-item ${isSel ? 'selected' : ''}"
+                 onclick="selectGap('${wall.id}', '${g.id}')">
+                <span class="gap-icon">${t.icon}</span>
+                <div class="gap-info">
+                    <div class="gap-name">${escapeHtml(g.name || t.label)}</div>
+                    <div class="gap-sub">${g.width.toFixed(1)} м · ${t.label}</div>
+                </div>
+                <button class="btn-icon" title="Удалить" onclick="event.stopPropagation(); deleteGap('${wall.id}', '${g.id}')">✕</button>
+            </div>
+        `;
+    }).join('');
+}
+
+function selectGap(wallId, gapId) {
+    selectedItem = { type: 'gap', id: gapId, objId: wallId };
+    renderPropsPanel();
+    redraw();
+}
+function deleteGap(wallId, gapId) {
+    const wall = state.objects.find(o => o.id === wallId);
+    if (!wall || !wall.gaps) return;
+    pushHistory();
+    wall.gaps = wall.gaps.filter(g => g.id !== gapId);
+    if (selectedItem && selectedItem.id === gapId) selectedItem = { type: 'object', id: wallId };
+    saveState();
+    renderSidebar(); renderPropsPanel(); redraw();
+}
+function addGapToSelectedWall() {
+    if (!selectedItem || selectedItem.type !== 'object') return;
+    const wall = state.objects.find(o => o.id === selectedItem.id);
+    if (!wall || (wall.kind !== 'line' && wall.kind !== 'cap-wall')) return;
+    const type = activeGapType;
+    const def = GAP_TYPES[type];
+    pushHistory();
+    if (!wall.gaps) wall.gaps = [];
+    const gapId = 'gap_' + Date.now() + '_' + (state.counter.gap++);
+    const gap = {
+        id: gapId, t: 0.5, width: def.defaultWidth, type,
+        name: def.label + ' ' + state.counter.gap
+    };
+    if (type === 'gate') {
+        gap.dock = { depth: 15, side: 1, name: '' };
+    }
+    wall.gaps.push(gap);
+    selectedItem = { type: 'gap', id: gapId, objId: wall.id };
+    saveState();
+    renderSidebar(); renderPropsPanel(); redraw();
+}
+
+function renderGapProps(wall, gap, body, title, typeBadge, deleteBtn) {
+    title.innerText = 'Проём';
+    typeBadge.style.display = 'inline-block';
+    typeBadge.innerText = GAP_TYPES[gap.type]?.label || 'Проём';
+
+    body.innerHTML = `
+        <div class="prop-row">
+            <label>Название</label>
+            <input type="text" value="${escapeAttr(gap.name || '')}" oninput="updateGapProp('name', this.value)">
+        </div>
+        <div class="prop-row">
+            <label>Тип</label>
+            <div class="style-btns">
+                ${Object.entries(GAP_TYPES).map(([k, v]) => `
+                    <div class="style-btn ${k === gap.type ? 'active' : ''}"
+                         onclick="updateGapProp('type', '${k}')">${v.label}</div>
+                `).join('')}
+            </div>
+        </div>
+        <div class="prop-row">
+            <label>Ширина</label>
+            <input type="range" min="0.3" max="15" step="0.1" value="${gap.width}"
+                   oninput="updateGapProp('width', parseFloat(this.value))">
+            <div class="range-info"><span>${gap.width.toFixed(1)} м</span><span>${(gap.width * PX_PER_M).toFixed(0)} px</span></div>
+        </div>
+        <div class="prop-row">
+            <label>Позиция на стене</label>
+            <input type="range" min="1" max="99" step="1" value="${Math.round(gap.t * 100)}"
+                   oninput="updateGapProp('t', parseInt(this.value) / 100)">
+            <div class="range-info"><span>${Math.round(gap.t * 100)}%</span></div>
+        </div>
+        ${gap.type === 'gate' ? `
+            <div class="prop-row">
+                <label>Причал (док)</label>
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">
+                    Внешняя площадка у ворот.
+                </div>
+                <label style="margin-top:8px;">Название дока</label>
+                <input type="text" value="${escapeAttr(gap.dock?.name || '')}"
+                       oninput="updateGapProp('dock.name', this.value)"
+                       placeholder="Оставьте пустым, если не нужно">
+                <label style="margin-top:8px;">Глубина</label>
+                <input type="range" min="5" max="40" step="1" value="${gap.dock?.depth || 15}"
+                       oninput="updateGapProp('dock.depth', parseInt(this.value))">
+                <div class="range-info"><span>${gap.dock?.depth || 15} м</span></div>
+                <label style="margin-top:8px;">Сторона</label>
+                <div class="style-btns">
+                    <div class="style-btn ${(gap.dock?.side || 1) === 1 ? 'active' : ''}"
+                         onclick="updateGapProp('dock.side', 1)">A</div>
+                    <div class="style-btn ${(gap.dock?.side || 1) === -1 ? 'active' : ''}"
+                         onclick="updateGapProp('dock.side', -1)">B</div>
+                </div>
+            </div>
+        ` : ''}
+    `;
+    deleteBtn.style.display = '';
+}
+
+function updateGapProp(key, value) {
+    if (!selectedItem || selectedItem.type !== 'gap') return;
+    const wall = state.objects.find(o => o.id === selectedItem.objId);
+    if (!wall) return;
+    const gap = wall.gaps.find(g => g.id === selectedItem.id);
+    if (!gap) return;
+    pushHistory();
+    if (key.includes('.')) {
+        const [k1, k2] = key.split('.');
+        if (!gap[k1]) gap[k1] = {};
+        gap[k1][k2] = value;
+    } else {
+        gap[key] = value;
+    }
+    saveState();
+    renderSidebar(); redraw();
+    if (key === 'type') renderPropsPanel();
+    if (key === 'width') {
+        const info = document.querySelectorAll('.prop-row .range-info')[0];
+        if (info) {
+            const spans = info.querySelectorAll('span');
+            if (spans[0]) spans[0].innerText = value.toFixed(1) + ' м';
+            if (spans[1]) spans[1].innerText = (value * PX_PER_M).toFixed(0) + ' px';
+        }
+    }
+    if (key === 't') {
+        const infos = document.querySelectorAll('.prop-row .range-info');
+        if (infos[1]) {
+            const spans = infos[1].querySelectorAll('span');
+            if (spans[0]) spans[0].innerText = Math.round(value * 100) + '%';
+        }
+    }
+}
+
+function renderCameraProps(cam, body, title, typeBadge, deleteBtn) {
+    title.innerText = 'Камера';
+    typeBadge.style.display = 'inline-block';
+    typeBadge.innerText = 'CAM';
+    const folderOptions = `
+        <option value="">— Без папки —</option>
+        ${state.folders.map(f => `
+            <option value="${f.id}" ${f.id === cam.folderId ? 'selected' : ''}>${escapeHtml(f.name)}</option>
+        `).join('')}
+    `;
+    body.innerHTML = `
+        <div class="prop-row">
+            <label>Название</label>
+            <input type="text" value="${escapeAttr(cam.name)}" oninput="updateProp('name', this.value)">
+        </div>
+        <div class="prop-row">
+            <label>URL потока</label>
+            <input type="text" value="${escapeAttr(cam.url)}" oninput="updateProp('url', this.value)">
+        </div>
+        <div class="prop-row">
+            <label>Папка</label>
+            <select onchange="updateProp('folderId', this.value || null)"
+                    style="width:100%; padding:8px 10px; background:var(--bg-main); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); font-size:13px; font-family:inherit; outline:none;">
+                ${folderOptions}
+            </select>
+        </div>
+        <div class="prop-row">
+            <label>Параметры обзора</label>
+            <div style="font-size:12px; color:var(--text-muted); line-height:1.7;">
+                Угол: ${cam.angle}°<br>
+                Сектор: ${cam.fov}°<br>
+                Дальность: ${(cam.length / PX_PER_M).toFixed(1)} м
+            </div>
+        </div>
+    `;
+    deleteBtn.style.display = '';
+}
+
+function updateProp(key, value) {
+    if (!selectedItem || !accessMode) return;
+    if (selectedItem.type !== 'object' && selectedItem.type !== 'camera') return;
+    pushHistory();
+    if (selectedItem.type === 'object') {
+        const obj = state.objects.find(o => o.id === selectedItem.id);
+        if (!obj) return;
+        obj[key] = value;
+    } else if (selectedItem.type === 'camera') {
+        const cam = state.cameras.find(c => c.id === selectedItem.id);
+        if (!cam) return;
+        cam[key] = value;
+    }
+    saveState();
+    renderSidebar();
+    redraw();
+
+    if (key === 'opacity') {
+        const info = document.querySelector('.prop-row .range-info');
+        if (info) {
+            const spans = info.querySelectorAll('span');
+            if (spans[1]) spans[1].innerText = Math.round(value * 100) + '%';
+        }
+    }
+    if (key === 'thickness') {
+        const info = document.querySelector('.prop-row .range-info');
+        if (info) {
+            const spans = info.querySelectorAll('span');
+            if (spans[0]) spans[0].innerText = value + ' px';
+            if (spans[1]) spans[1].innerText = (value / PX_PER_M).toFixed(2) + ' м';
+        }
+    }
+
+    if (['color','borderColor','borderStyle','markType','folderId'].includes(key)) {
+        renderPropsPanel();
+    }
+}
+
+function deleteSelected() {
+    if (!selectedItem) return;
+    if (!confirm('Удалить этот элемент?')) return;
+    pushHistory();
+    if (selectedItem.type === 'object') {
+        state.objects = state.objects.filter(o => o.id !== selectedItem.id);
+    } else if (selectedItem.type === 'camera') {
+        state.cameras = state.cameras.filter(c => c.id !== selectedItem.id);
+    } else if (selectedItem.type === 'gap') {
+        const wall = state.objects.find(o => o.id === selectedItem.objId);
+        if (wall && wall.gaps) {
+            wall.gaps = wall.gaps.filter(g => g.id !== selectedItem.id);
+        }
+    }
+    selectedItem = null;
+    saveState();
+    renderSidebar(); renderPropsPanel(); redraw();
+}
+
+/* МОДАЛКА */
+function openCameraModal(id, coords) {
+    editingType = 'camera';
+    editingId = id;
+    const title = document.getElementById('modal-title');
+    const body = document.getElementById('modal-body');
+    const deleteBtn = document.getElementById('modal-delete-btn');
+    let cam;
+    if (id) {
+        cam = state.cameras.find(c => c.id === id);
+        title.innerText = 'Редактирование камеры';
+        deleteBtn.style.display = '';
+    } else {
+        cam = { name: 'Камера ' + state.counter.cam, url: 'https://', folderId: null };
+        title.innerText = 'Новая камера';
+        deleteBtn.style.display = 'none';
+    }
+    const folderOptions = `
+        <option value="">— Без папки —</option>
+        ${state.folders.map(f => `
+            <option value="${f.id}" ${f.id === cam.folderId ? 'selected' : ''}>${escapeHtml(f.name)}</option>
+        `).join('')}
+    `;
+    body.innerHTML = `
+        <div class="form-row">
+            <label>Название</label>
+            <input type="text" id="m-cam-name" value="${escapeAttr(cam.name)}">
+        </div>
+        <div class="form-row">
+            <label>URL потока</label>
+            <input type="text" id="m-cam-url" value="${escapeAttr(cam.url)}">
+        </div>
+        <div class="form-row">
+            <label>Папка</label>
+            <select id="m-cam-folder">${folderOptions}</select>
+        </div>
+    `;
+    openModal();
+    setTimeout(() => document.getElementById('m-cam-name')?.focus(), 50);
+}
+function saveModal() {
+    if (editingType !== 'camera') { closeModal(); return; }
+    const name = document.getElementById('m-cam-name').value.trim();
+    const url = document.getElementById('m-cam-url').value.trim();
+    const folderId = document.getElementById('m-cam-folder').value || null;
+    if (!url || url === 'https://') { alert('Укажите корректный URL'); return; }
+    pushHistory();
+    if (editingId) {
+        const cam = state.cameras.find(c => c.id === editingId);
+        cam.name = name; cam.url = url; cam.folderId = folderId;
+    } else {
+        const newId = 'cam_' + Date.now() + '_' + (state.counter.cam++);
+        state.cameras.push({
+            id: newId, x: tempCoords.x, y: tempCoords.y,
+            angle: 0, fov: 45, length: 20,
+            name, url, folderId
+        });
+        selectedItem = { type: 'camera', id: newId };
+    }
+    saveState();
+    closeModal();
+    renderSidebar(); renderPropsPanel(); redraw();
+}
+function deleteFromModal() {
+    if (!editingId) return;
+    if (!confirm('Удалить камеру?')) return;
+    pushHistory();
+    state.cameras = state.cameras.filter(c => c.id !== editingId);
+    if (selectedItem && selectedItem.id === editingId) selectedItem = null;
+    saveState();
+    closeModal();
+    renderSidebar(); renderPropsPanel(); redraw();
+}
+function openModal() {
+    document.getElementById('modal').classList.add('visible');
+    document.getElementById('modal-overlay').classList.add('visible');
+}
+function closeModal() {
+    document.getElementById('modal').classList.remove('visible');
+    document.getElementById('modal-overlay').classList.remove('visible');
+}
+
+/* САЙДБАР */
+function renderSidebar() {
+    const container = document.getElementById('sb-content');
+    container.innerHTML = '';
+    if (!accessMode) renderViewMode(container);
+    else {
+        if (submode === 'layout') renderLayoutList(container);
+        else renderCamerasList(container);
+    }
+}
+
+function renderViewMode(container) {
+    const q = searchQuery.toLowerCase();
+    const matches = (cam) => !q || cam.name.toLowerCase().includes(q);
+    const rootCameras = state.cameras.filter(c => !c.folderId && matches(c)).sort((a, b) => a.name.localeCompare(b.name));
+    const folders = [...state.folders].sort((a, b) => a.name.localeCompare(b.name));
+    if (rootCameras.length === 0 && folders.length === 0) {
+        container.innerHTML = '<div class="sb-empty">Камеры ещё не добавлены</div>';
+        return;
+    }
+    rootCameras.forEach(cam => container.appendChild(makeViewCameraItem(cam)));
+    folders.forEach(folder => {
+        const cams = state.cameras.filter(c => c.folderId === folder.id && matches(c)).sort((a, b) => a.name.localeCompare(b.name));
+        if (q && cams.length === 0) return;
+        container.appendChild(makeViewFolder(folder, cams));
+    });
+}
+function makeViewCameraItem(cam) {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `
+        <div class="list-item-icon">📹</div>
+        <div class="list-item-info">
+            <div class="list-item-title">${escapeHtml(cam.name)}</div>
+            <div class="list-item-sub">${escapeHtml(cam.url)}</div>
+        </div>
+    `;
+    el.onclick = () => { if (cam.url && cam.url !== 'https://') window.open(cam.url, '_blank'); };
+    return el;
+}
+function makeViewFolder(folder, cams) {
+    const wrap = document.createElement('div');
+    const isCollapsed = collapsedFolders[folder.id];
+    const header = document.createElement('div');
+    header.className = 'folder-header' + (isCollapsed ? ' collapsed' : '');
+    header.innerHTML = `
+        <span class="arrow">▼</span>
+        <span style="font-size:14px;">📁</span>
+        <span class="folder-name">${escapeHtml(folder.name)}</span>
+        <span class="folder-count">${cams.length}</span>
+    `;
+    header.onclick = () => { collapsedFolders[folder.id] = !collapsedFolders[folder.id]; renderSidebar(); };
+    wrap.appendChild(header);
+    const children = document.createElement('div');
+    children.className = 'folder-children' + (isCollapsed ? ' collapsed' : '');
+    cams.forEach(cam => children.appendChild(makeViewCameraItem(cam)));
+    wrap.appendChild(children);
+    return wrap;
+}
+
+function renderLayoutList(container) {
+    const q = searchQuery.toLowerCase();
+    const items = state.objects
+        .filter(o => !q || (o.name || '').toLowerCase().includes(q))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    if (items.length === 0) {
+        container.innerHTML = '<div class="sb-empty">Объектов нет.<br>Нарисуйте зону, стену<br>или разместите метку.</div>';
+        return;
+    }
+    items.forEach(obj => {
+        const el = document.createElement('div');
+        el.className = 'list-item';
+        if (selectedItem && selectedItem.type === 'object' && selectedItem.id === obj.id) el.classList.add('selected');
+        let sub = '', icon = '', swatch = '';
+        if (obj.kind === 'line' || obj.kind === 'cap-wall') {
+            const len = Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1) / PX_PER_M;
+            const gapCount = (obj.gaps || []).length;
+            sub = `${len.toFixed(1)} м` + (gapCount > 0 ? ` · ${gapCount} проёмов` : '');
+            icon = obj.kind === 'cap-wall' ? '▬' : '╱';
+        } else if (obj.kind === 'mark') {
+            const info = MARKS_INFO[obj.markType] || MARKS_INFO.shield;
+            sub = info.label;
+            swatch = `<div class="list-item-swatch" style="background:${info.bg};"></div>`;
+        } else {
+            sub = `${(obj.w / PX_PER_M).toFixed(1)} × ${(obj.h / PX_PER_M).toFixed(1)} м`;
+            swatch = `<div class="list-item-swatch" style="background:${obj.color}; opacity:${Math.max(0.4, obj.opacity)};"></div>`;
+        }
+        el.innerHTML = `
+            ${swatch || `<div class="list-item-icon">${icon}</div>`}
+            <div class="list-item-info">
+                <div class="list-item-title">${escapeHtml(obj.name || 'Без названия')}</div>
+                <div class="list-item-sub">${sub}</div>
+            </div>
+        `;
+        el.onclick = () => {
+            selectedItem = { type: 'object', id: obj.id };
+            renderSidebar(); renderPropsPanel(); redraw();
+        };
+        container.appendChild(el);
+    });
+}
+
+function renderCamerasList(container) {
+    const q = searchQuery.toLowerCase();
+    const matches = (cam) => !q || cam.name.toLowerCase().includes(q);
+    const createBtn = document.createElement('button');
+    createBtn.className = 'btn btn-secondary btn-sm';
+    createBtn.innerText = '+ Создать папку';
+    createBtn.style.marginBottom = '8px';
+    createBtn.onclick = createFolder;
+    container.appendChild(createBtn);
+    const rootCameras = state.cameras.filter(c => !c.folderId && matches(c)).sort((a, b) => a.name.localeCompare(b.name));
+    const folders = [...state.folders].sort((a, b) => a.name.localeCompare(b.name));
+    if (rootCameras.length === 0 && folders.length === 0 && !q) {
+        const empty = document.createElement('div');
+        empty.className = 'sb-empty';
+        empty.innerHTML = 'Камер нет.<br>Кликните на canvas, чтобы добавить.';
+        container.appendChild(empty);
+        return;
+    }
+    if (rootCameras.length > 0) {
+        const t = document.createElement('div');
+        t.className = 'sb-section-title';
+        t.innerText = 'Без папки';
+        container.appendChild(t);
+    }
+    rootCameras.forEach(cam => container.appendChild(makeEditCameraItem(cam)));
+    folders.forEach(folder => {
+        const cams = state.cameras.filter(c => c.folderId === folder.id && matches(c)).sort((a, b) => a.name.localeCompare(b.name));
+        if (q && cams.length === 0) return;
+        container.appendChild(makeEditFolder(folder, cams));
+    });
+}
+function makeEditCameraItem(cam) {
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    if (selectedItem && selectedItem.type === 'camera' && selectedItem.id === cam.id) el.classList.add('selected');
+    el.draggable = true;
+    el.dataset.cameraId = cam.id;
+    el.innerHTML = `
+        <div class="list-item-icon">📹</div>
+        <div class="list-item-info">
+            <div class="list-item-title">${escapeHtml(cam.name)}</div>
+            <div class="list-item-sub">${escapeHtml(cam.url)}</div>
+        </div>
+    `;
+    el.onclick = () => {
+        selectedItem = { type: 'camera', id: cam.id };
+        renderSidebar(); renderPropsPanel(); redraw();
+    };
+    el.ondblclick = () => openCameraModal(cam.id);
+    el.addEventListener('dragstart', (e) => {
+        draggingCameraId = cam.id;
+        el.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => {
+        draggingCameraId = null;
+        el.classList.remove('dragging');
+        document.querySelectorAll('.folder-header').forEach(h => h.classList.remove('drag-over'));
+    });
+    return el;
+}
+function makeEditFolder(folder, cams) {
+    const wrap = document.createElement('div');
+    const isCollapsed = collapsedFolders[folder.id];
+    const header = document.createElement('div');
+    header.className = 'folder-header' + (isCollapsed ? ' collapsed' : '');
+    header.dataset.folderId = folder.id;
+    header.innerHTML = `
+        <span class="arrow">▼</span>
+        <span style="font-size:14px;">📁</span>
+        <span class="folder-name">${escapeHtml(folder.name)}</span>
+        <span class="folder-count">${cams.length}</span>
+        <span class="folder-actions">
+            <button class="btn-icon" title="Переименовать" data-act="rename">✏️</button>
+            <button class="btn-icon" title="Удалить" data-act="delete">✕</button>
+        </span>
+    `;
+    header.onclick = (e) => {
+        const act = e.target.dataset?.act;
+        if (act === 'rename') { e.stopPropagation(); renameFolder(folder.id); return; }
+        if (act === 'delete') { e.stopPropagation(); deleteFolder(folder.id); return; }
+        collapsedFolders[folder.id] = !collapsedFolders[folder.id];
+        renderSidebar();
+    };
+    header.ondblclick = (e) => { e.stopPropagation(); renameFolder(folder.id); };
+    header.addEventListener('dragover', (e) => {
+        e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+        header.classList.add('drag-over');
+    });
+    header.addEventListener('dragleave', () => header.classList.remove('drag-over'));
+    header.addEventListener('drop', (e) => {
+        e.preventDefault();
+        header.classList.remove('drag-over');
+        if (!draggingCameraId) return;
+        const cam = state.cameras.find(c => c.id === draggingCameraId);
+        if (!cam || cam.folderId === folder.id) return;
+        pushHistory();
+        cam.folderId = folder.id;
+        collapsedFolders[folder.id] = false;
+        saveState();
+        renderSidebar();
+    });
+    wrap.appendChild(header);
+    const children = document.createElement('div');
+    children.className = 'folder-children' + (isCollapsed ? ' collapsed' : '');
+    children.dataset.folderId = folder.id;
+    children.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+    children.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (!draggingCameraId) return;
+        const cam = state.cameras.find(c => c.id === draggingCameraId);
+        if (!cam || cam.folderId === folder.id) return;
+        pushHistory();
+        cam.folderId = folder.id;
+        saveState();
+        renderSidebar();
+    });
+    cams.forEach(cam => children.appendChild(makeEditCameraItem(cam)));
+    wrap.appendChild(children);
+    return wrap;
+}
+function createFolder() {
+    const name = prompt('Название папки:', 'Новая папка');
+    if (!name || !name.trim()) return;
+    pushHistory();
+    state.folders.push({
+        id: 'folder_' + Date.now() + '_' + (state.counter.folder++),
+        name: name.trim()
+    });
+    saveState();
+    renderSidebar();
+}
+function renameFolder(id) {
+    const f = state.folders.find(x => x.id === id);
+    if (!f) return;
+    const name = prompt('Новое название:', f.name);
+    if (!name || !name.trim()) return;
+    pushHistory();
+    f.name = name.trim();
+    saveState();
+    renderSidebar();
+}
+function deleteFolder(id) {
+    const f = state.folders.find(x => x.id === id);
+    if (!f) return;
+    const count = state.cameras.filter(c => c.folderId === id).length;
+    const msg = count > 0
+        ? `Удалить папку "${f.name}"? ${count} камер(ы) вернутся в корень.`
+        : `Удалить папку "${f.name}"?`;
+    if (!confirm(msg)) return;
+    pushHistory();
+    state.cameras.forEach(c => { if (c.folderId === id) c.folderId = null; });
+    state.folders = state.folders.filter(x => x.id !== id);
+    saveState();
+    renderSidebar();
+}
+function onSearchInput() {
+    searchQuery = document.getElementById('search-input').value.trim();
+    renderSidebar();
+}
+
+/* ЭКСПОРТ / ИМПОРТ */
+function exportJSON() {
+    const data = JSON.stringify(state, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sc-map-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+function importJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const p = JSON.parse(e.target.result);
+            if (!p.objects || !p.cameras) throw new Error('Неверный формат');
+            if (!confirm('Текущая конфигурация будет заменена. Продолжить?')) return;
+            pushHistory();
+            state = {
+                objects: p.objects || [],
+                cameras: p.cameras || [],
+                folders: p.folders || [],
+                settings: { ...DEFAULT_SETTINGS, ...(p.settings || {}) },
+                counter: p.counter || { obj: 1, cam: 1, folder: 1, gap: 1, mark: 1 }
+            };
+            saveState();
+            selectedItem = null;
+            syncSettingsUI();
+            renderSidebar(); renderPropsPanel(); redraw();
+            alert('Импорт завершён');
+        } catch (err) { alert('Ошибка импорта: ' + err.message); }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+function resetAll() {
+    if (!confirm('Полностью сбросить всю конфигурацию?')) return;
+    if (!confirm('Точно уверены? Все объекты и камеры будут удалены.')) return;
+    pushHistory();
+    state = {
+        objects: [], cameras: [], folders: [],
+        settings: { ...DEFAULT_SETTINGS },
+        counter: { obj: 1, cam: 1, folder: 1, gap: 1, mark: 1 }
+    };
+    saveState();
+    selectedItem = null;
+    syncSettingsUI();
+    renderSidebar(); renderPropsPanel(); redraw();
+}
+
+/* УТИЛИТЫ */
+function hexToRgba(hex, alpha) {
+    if (!hex) return 'rgba(0,0,0,0)';
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+function getContrastColor(hex) {
+    if (!hex || hex === '#fff' || hex === '#ffffff') return '#1a1a1a';
+    if (hex.length < 7) return '#1a1a1a';
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq >= 160 ? '#1a1a1a' : '#ffffff';
+}
+function wrapText(text, cx, cy, maxWidth, lineHeight) {
+    const words = text.split(' ');
+    const lines = [];
+    let current = '';
+    for (const w of words) {
+        const test = current ? current + ' ' + w : w;
+        if (ctx.measureText(test).width > maxWidth && current) {
+            lines.push(current); current = w;
+        } else current = test;
+    }
+    if (current) lines.push(current);
+    const total = lines.length * lineHeight;
+    const start = cy - total / 2 + lineHeight / 2;
+    lines.forEach((line, i) => ctx.fillText(line, cx, start + i * lineHeight));
+}
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function escapeAttr(str) { return escapeHtml(str); }
+
+/* ИНИЦИАЛИЗАЦИЯ */
+function init() {
+    initTheme();
+    loadState();
+    resizeCanvas();
+    view.offsetX = (canvas.width - CANVAS_W) / 2;
+    view.offsetY = (canvas.height - CANVAS_H) / 2;
+    updateZoomIndicator();
+    updateAccessUI();
+    syncSettingsUI();
+    renderSidebar();
+    renderPropsPanel();
+    redraw();
+    updateHistoryButtons();
+}
+init();
+</script>
+</body>
+</html>
